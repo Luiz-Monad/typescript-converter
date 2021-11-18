@@ -474,7 +474,13 @@ namespace TypeScript.Syntax
             if (properties.Count == 0)
             {
                 TypeLiteral typeLiteral = NodeHelper.CreateNode(NodeKind.TypeLiteral) as TypeLiteral;
-                typeLiteral.Members.Add(NodeHelper.CreateNode(NodeKind.IndexSignature));
+
+                Node elementType = NodeHelper.CreateNode(NodeKind.AnyKeyword);
+                elementType.NodeName = "type";
+                Node propSignature = NodeHelper.CreateNode(NodeKind.IndexSignature);
+                propSignature.AddChild(elementType);
+
+                typeLiteral.Members.Add(propSignature);
                 return typeLiteral;
             }
             else
