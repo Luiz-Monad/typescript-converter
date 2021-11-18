@@ -2,3 +2,4 @@
 **/bin
 **/obj
 build
+src/Startup/Properties/launchSettings.json
