@@ -18,7 +18,15 @@ namespace TypeScript.Converter.CSharp
             {
                 return CreateDelegateDeclaration(node);
             }
-            return SyntaxFactory.UsingDirective(SyntaxFactory.NameEquals(node.Name.Text), node.Type.ToCsNode<NameSyntax>());
+            var name = node.Type.ToCsNode<NameSyntax>();
+            if (name != null)
+                return SyntaxFactory.UsingDirective(SyntaxFactory.NameEquals(node.Name.Text), name);
+
+            ClassDeclarationSyntax csClass = SyntaxFactory
+                .ClassDeclaration(node.Name.Text)
+                .AddModifiers(node.Modifiers.ToCsNodes<SyntaxToken>())
+                .AddMembers(node.Type.Children.ToCsNodes<MemberDeclarationSyntax>());
+            return csClass;
         }
 
         private bool IsDelegateDeclaration(TypeAliasDeclaration node)
