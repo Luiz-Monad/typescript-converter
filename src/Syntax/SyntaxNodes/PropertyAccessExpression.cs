@@ -13,6 +13,12 @@ namespace TypeScript.Syntax
             get { return NodeKind.PropertyAccessExpression; }
         }
 
+        public Node QuestionDotToken
+        {
+            get;
+            private set;
+        }
+
         public Node Expression
         {
             get;
@@ -49,6 +55,10 @@ namespace TypeScript.Syntax
             {
                 case "expression":
                     this.Expression = childNode;
+                    break;
+
+                case "questionDotToken":
+                    this.QuestionDotToken = childNode;
                     break;
 
                 case "name":

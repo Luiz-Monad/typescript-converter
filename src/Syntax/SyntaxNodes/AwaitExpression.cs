@@ -5,32 +5,28 @@ using Newtonsoft.Json.Linq;
 
 namespace TypeScript.Syntax
 {
-    public class BindingElement : Node
+    public class AwaitExpression : Expression
     {
-        #region Proert
+        #region Properties
         public override NodeKind Kind
         {
-            get { return NodeKind.BindingElement; }
+            get { return NodeKind.AwaitExpression; }
         }
 
-        public Node Name
+        public Node Expression
         {
             get;
             private set;
         }
 
-        public Node PropertyName
-        {
-            get;
-            private set;
-        }
         #endregion
+
 
         public override void Init(JObject jsonObj)
         {
             base.Init(jsonObj);
 
-            this.Name = null;
+            this.Expression = null;
         }
 
         public override void AddChild(Node childNode)
@@ -40,12 +36,8 @@ namespace TypeScript.Syntax
             string nodeName = childNode.NodeName;
             switch (nodeName)
             {
-                case "name":
-                    this.Name = childNode;
-                    break;
-
-                case "propertyName":
-                    this.PropertyName = childNode;
+                case "expression":
+                    this.Expression = childNode;
                     break;
 
                 default:
@@ -53,7 +45,6 @@ namespace TypeScript.Syntax
                     break;
             }
         }
-
     }
 }
 

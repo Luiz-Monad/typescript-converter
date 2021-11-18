@@ -19,6 +19,12 @@ namespace TypeScript.Syntax
             private set;
         }
 
+        public List<Node> Modifiers
+        {
+            get;
+            private set;
+        }
+
         public Node Type
         {
             get;
@@ -44,6 +50,7 @@ namespace TypeScript.Syntax
             base.Init(jsonObj);
 
             this.Parameters = new List<Node>();
+            this.Modifiers = new List<Node>();
             this.Type = null;
             this.EqualsGreaterThanToken = null;
             this.Body = null;
@@ -58,6 +65,10 @@ namespace TypeScript.Syntax
             {
                 case "parameters":
                     this.Parameters.Add(childNode);
+                    break;
+
+                case "modifiers":
+                    this.Modifiers.Add(childNode);
                     break;
 
                 case "type":

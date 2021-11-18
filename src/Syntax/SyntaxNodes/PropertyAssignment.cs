@@ -22,7 +22,7 @@ namespace TypeScript.Syntax
         public Node Initializer
         {
             get;
-            private set;
+            protected set;
         }
         #endregion
 

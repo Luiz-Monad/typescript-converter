@@ -1,36 +1,22 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
 namespace TypeScript.Syntax
 {
-    public class BindingElement : Node
+    public class AsyncKeyword : Node
     {
-        #region Proert
+        #region Properties
         public override NodeKind Kind
         {
-            get { return NodeKind.BindingElement; }
-        }
-
-        public Node Name
-        {
-            get;
-            private set;
-        }
-
-        public Node PropertyName
-        {
-            get;
-            private set;
+            get { return NodeKind.AsyncKeyword; }
         }
         #endregion
 
         public override void Init(JObject jsonObj)
         {
             base.Init(jsonObj);
-
-            this.Name = null;
         }
 
         public override void AddChild(Node childNode)
@@ -40,20 +26,16 @@ namespace TypeScript.Syntax
             string nodeName = childNode.NodeName;
             switch (nodeName)
             {
-                case "name":
-                    this.Name = childNode;
-                    break;
-
-                case "propertyName":
-                    this.PropertyName = childNode;
-                    break;
-
                 default:
                     this.ProcessUnknownNode(childNode);
                     break;
             }
         }
 
+        protected override string GetText()
+        {
+            return "async";
+        }
     }
 }
 

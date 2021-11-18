@@ -43,6 +43,9 @@ namespace TypeScript.Syntax
                 return null;
             }
         }
+
+        public Node AwaitModifier { get; private set; }
+
         #endregion
 
         public override void Init(JObject jsonObj)
@@ -71,6 +74,10 @@ namespace TypeScript.Syntax
 
                 case "statement":
                     this.Statement = childNode;
+                    break;
+
+                case "awaitModifier":
+                    this.AwaitModifier = childNode;
                     break;
 
                 default:

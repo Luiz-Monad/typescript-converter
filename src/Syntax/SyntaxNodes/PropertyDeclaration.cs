@@ -19,6 +19,12 @@ namespace TypeScript.Syntax
             private set;
         }
 
+        public List<Node> Decorators
+        {
+            get;
+            private set;
+        }
+
         public List<Node> Modifiers
         {
             get;
@@ -83,7 +89,10 @@ namespace TypeScript.Syntax
             }
         }
 
-        private Node QuestionToken { get; set; }
+        public Node QuestionToken { get; private set; }
+
+        public Node ExclamationToken { get; private set; }
+
         #endregion
 
         public override void Init(JObject jsonObj)
@@ -91,6 +100,7 @@ namespace TypeScript.Syntax
             base.Init(jsonObj);
 
             this.JsDoc = new List<Node>();
+            this.Decorators = new List<Node>();
             this.Modifiers = new List<Node>();
             this.Name = null;
             this.Type = null;
@@ -107,6 +117,10 @@ namespace TypeScript.Syntax
                     this.JsDoc.Add(childNode);
                     break;
 
+                case "decorators":
+                    this.Decorators.Add(childNode);
+                    break;
+
                 case "modifiers":
                     this.Modifiers.Add(childNode);
                     break;
@@ -121,6 +135,14 @@ namespace TypeScript.Syntax
 
                 case "initializer":
                     this.Initializer = childNode;
+                    break;
+
+                case "questionToken":
+                    this.QuestionToken = childNode;
+                    break;
+
+                case "exclamationToken":
+                    this.ExclamationToken = childNode;
                     break;
 
                 default:

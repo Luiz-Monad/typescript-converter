@@ -5,21 +5,16 @@ using Newtonsoft.Json.Linq;
 
 namespace TypeScript.Syntax
 {
-    public class BindingElement : Node
+    public class ObjectBindingPattern : Node
     {
-        #region Proert
+
+        #region Properties
         public override NodeKind Kind
         {
-            get { return NodeKind.BindingElement; }
+            get { return NodeKind.ObjectBindingPattern; }
         }
 
-        public Node Name
-        {
-            get;
-            private set;
-        }
-
-        public Node PropertyName
+        public List<Node> Elements
         {
             get;
             private set;
@@ -30,7 +25,7 @@ namespace TypeScript.Syntax
         {
             base.Init(jsonObj);
 
-            this.Name = null;
+            this.Elements = new List<Node>();
         }
 
         public override void AddChild(Node childNode)
@@ -40,12 +35,8 @@ namespace TypeScript.Syntax
             string nodeName = childNode.NodeName;
             switch (nodeName)
             {
-                case "name":
-                    this.Name = childNode;
-                    break;
-
-                case "propertyName":
-                    this.PropertyName = childNode;
+                case "elements":
+                    this.Elements.Add(childNode);
                     break;
 
                 default:
