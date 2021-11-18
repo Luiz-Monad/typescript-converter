@@ -165,7 +165,7 @@ namespace TypeScript.Converter.CSharp
         /// 
         /// </summary>
         /// <param name="text"></param>
-        /// <returns></returns>
+        /// <retu   rns></returns>
         protected string CommentText(string text)
         {
             return "AAA___" + text + "___AAA";
