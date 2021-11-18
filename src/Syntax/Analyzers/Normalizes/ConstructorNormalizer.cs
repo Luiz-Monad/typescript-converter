@@ -152,7 +152,7 @@ namespace TypeScript.Syntax.Analysis
 
         private void RemoveBaseStatement(Constructor ctorNode)
         {
-            Node baseInvokeStatement = ctorNode.Body.Statements.Find(s => this.IsBaseConstructor(s));
+            Node baseInvokeStatement = ctorNode?.Body?.Statements?.Find(s => this.IsBaseConstructor(s));
             if (baseInvokeStatement != null)
             {
                 ctorNode.Body.RemoveStatement(baseInvokeStatement);

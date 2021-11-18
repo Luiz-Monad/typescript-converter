@@ -480,19 +480,36 @@ namespace TypeScript.Syntax
             else
             {
                 TypeLiteral typeLiteral = NodeHelper.CreateNode(NodeKind.TypeLiteral) as TypeLiteral;
-                foreach (PropertyAssignment prop in properties)
+                foreach (Node property in properties)
                 {
-                    Node initValue = prop.Initializer;
                     Node elementType = null;
-                    if (initValue.Kind != NodeKind.ObjectLiteralExpression && initValue.Kind != NodeKind.ArrayLiteralExpression)
+                    Node name = null;
+                    if (property.Kind == NodeKind.PropertyAssignment || property.Kind == NodeKind.ShorthandPropertyAssignment)
                     {
-                        elementType = GetNodeType(initValue);
+                        PropertyAssignment prop = property as PropertyAssignment;
+                        Node initValue = prop.Initializer;
+
+                        if (initValue.Kind != NodeKind.ObjectLiteralExpression && initValue.Kind != NodeKind.ArrayLiteralExpression)
+                        {
+                            elementType = GetNodeType(initValue);
+                        }
+                        name = prop.Name;
                     }
+                    else if (property.Kind == NodeKind.MethodDeclaration)
+                    {
+                        MethodDeclaration method = property as MethodDeclaration;
+                        elementType = GetNodeType(method);
+                        name = method.Name;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
                     elementType = elementType ?? NodeHelper.CreateNode(NodeKind.AnyKeyword);
                     elementType.NodeName = "type";
-
                     Node propSignature = NodeHelper.CreateNode(NodeKind.PropertySignature);
-                    propSignature.AddChild(prop.Name.TsNode);
+                    propSignature.AddChild(name.TsNode);
                     propSignature.AddChild(elementType);
 
                     typeLiteral.Members.Add(propSignature);

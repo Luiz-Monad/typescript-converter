@@ -55,7 +55,7 @@ namespace TypeScript.Syntax
         {
             get
             {
-                if (this.DotDotDotToken == null)
+                if (this.DotDotDotToken == null || this.Type == null)
                 {
                     return false;
                 }

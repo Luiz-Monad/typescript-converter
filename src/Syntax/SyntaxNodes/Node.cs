@@ -383,7 +383,7 @@ namespace TypeScript.Syntax
         {
             if (node.Kind == NodeKind.TypeAliasDeclaration)
             {
-                return ((TypeAliasDeclaration)node).Type.Kind != NodeKind.FunctionType;
+                return ((TypeAliasDeclaration)node)?.Type?.Kind != NodeKind.FunctionType;
             }
             return false;
         }
