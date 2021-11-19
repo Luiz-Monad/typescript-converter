@@ -37,7 +37,7 @@ namespace TypeScript.Converter.CSharp
                 return true;
             }
 
-            Node definition = type.Document.GetTypeDefinition(TypeHelper.ToShortName(type.Text));
+            Node definition = type.Document?.GetTypeDefinition(TypeHelper.ToShortName(type.Text));
             if (definition != null && definition.Kind == NodeKind.EnumDeclaration)
             {
                 return true;
