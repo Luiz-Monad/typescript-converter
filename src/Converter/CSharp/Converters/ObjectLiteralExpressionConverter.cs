@@ -14,107 +14,93 @@ namespace TypeScript.Converter.CSharp
     {
         public CSharpSyntaxNode Convert(ObjectLiteralExpression node)
         {
-            List<Node> properties = node.Properties;
             Node type = node.Type;
+
+            var spread = new List<SpreadElement>();
+            var properties = new List<PropertyAssignment>();
+            var trivia = new StringBuilder();
+
+            foreach (Node property in node.Properties)
+            {
+                if (property.Kind == NodeKind.PropertyAssignment || property.Kind == NodeKind.ShorthandPropertyAssignment)
+                {
+                    var prop = property as PropertyAssignment;
+                    properties.Add(prop);
+                }
+                else if (property.Kind == NodeKind.SpreadAssignment)
+                {
+                    var prop = property as SpreadAssignment;
+                    spread.Add(prop);
+                }
+                else
+                {
+                    trivia.Append(node.Text);
+                    trivia.Append(' ');
+                }
+            }
 
             if (type.Kind == NodeKind.TypeLiteral && properties.Count >= 2 &&
                 (type as TypeLiteral).Members.Count > 0 && (type as TypeLiteral).Members[0].Kind != NodeKind.IndexSignature)
             {
-                return SyntaxFactory.TupleExpression().AddArguments(properties.ToCsNodes<ArgumentSyntax>());
+                ExpressionSyntax expr = SyntaxFactory.TupleExpression().AddArguments(properties.ToCsNodes<ArgumentSyntax>());
+                if (spread.Count > 0) expr = SpreadElementConverter.CreateSpreadOperator(expr, spread);
+                if (trivia.Length > 0) expr = expr.WithTrailingComment(trivia.ToString());
+                return expr;
             }
             else if (type.Kind == NodeKind.AnyKeyword)
             {
-                AnonymousObjectCreationExpressionSyntax csAnonyNewExpr = SyntaxFactory.AnonymousObjectCreationExpression();
-                var spread = new List<Node>();
-                foreach (Node property in node.Properties)
+                var csAnonyNewExpr = SyntaxFactory.AnonymousObjectCreationExpression();
+                foreach (PropertyAssignment prop in properties)
                 {
-                    if (property.Kind == NodeKind.PropertyAssignment || property.Kind == NodeKind.ShorthandPropertyAssignment)
-                    {
-                        var prop = property as PropertyAssignment;
-                        string propName = prop.Name.Text;
-                        Node initValue = prop.Initializer;
-                        ExpressionSyntax valueExpr = initValue.ToCsNode<ExpressionSyntax>();
+                    string propName = prop.Name.Text;
+                    Node initValue = prop.Initializer;
+                    ExpressionSyntax valueExpr = initValue.ToCsNode<ExpressionSyntax>();
 
-                        if (type.Kind == NodeKind.TypeLiteral && initValue.Kind == NodeKind.NullKeyword)
+                    if (type.Kind == NodeKind.TypeLiteral && initValue.Kind == NodeKind.NullKeyword)
+                    {
+                        Node memType = TypeHelper.GetTypeLiteralMemberType(type as TypeLiteral, propName);
+                        if (memType != null)
                         {
-                            Node memType = TypeHelper.GetTypeLiteralMemberType(type as TypeLiteral, propName);
-                            if (memType != null)
-                            {
-                                valueExpr = SyntaxFactory.CastExpression(memType.ToCsNode<TypeSyntax>(), valueExpr);
-                            }
+                            valueExpr = SyntaxFactory.CastExpression(memType.ToCsNode<TypeSyntax>(), valueExpr);
                         }
+                    }
 
-                        csAnonyNewExpr = csAnonyNewExpr.AddInitializers(SyntaxFactory.AnonymousObjectMemberDeclarator(
-                            SyntaxFactory.NameEquals(propName),
-                            valueExpr));
-
-                    }
-                    else if (property.Kind == NodeKind.SpreadAssignment)
-                    {
-                        var prop = property as SpreadAssignment;
-                        spread.Add(prop.Expression);
-                    }
-                    else
-                    {
-                        spread.Add(NodeHelper.CreateNode(NodeKind.WhitespaceTrivia, this.CommentText(node.Text)));
-                    }
+                    csAnonyNewExpr = csAnonyNewExpr.AddInitializers(SyntaxFactory.AnonymousObjectMemberDeclarator(
+                        SyntaxFactory.NameEquals(propName),
+                        valueExpr));
                 }
-                if (spread.Count > 0)
-                {
-                    var arguments = new List<ArgumentSyntax>();
-                    arguments.Add(SyntaxFactory.Argument(csAnonyNewExpr));
-                    arguments.AddRange(this.ToArgumentList(spread));
-                    return SyntaxFactory
-                       .InvocationExpression(SyntaxFactory.ParseExpression("__spread__"))
-                       .AddArgumentListArguments(arguments.ToArray());
-                }
-                return csAnonyNewExpr;
+                ExpressionSyntax expr = csAnonyNewExpr;
+                if (spread.Count > 0) expr = SpreadElementConverter.CreateSpreadOperator(expr, spread);
+                if (trivia.Length > 0) expr = expr.WithTrailingComment(trivia.ToString());
+                return expr;
             }
             else
             {
-                ObjectCreationExpressionSyntax csObjLiteral = SyntaxFactory.ObjectCreationExpression(type.ToCsNode<TypeSyntax>()).AddArgumentListArguments();
+                var csObjLiteral = SyntaxFactory.ObjectCreationExpression(type.ToCsNode<TypeSyntax>()).AddArgumentListArguments();
                 List<ExpressionSyntax> initItemExprs = new List<ExpressionSyntax>();
-                foreach (Node property in node.Properties)
+                foreach (PropertyAssignment prop in properties)
                 {
-                    if (property.Kind == NodeKind.PropertyAssignment || property.Kind == NodeKind.ShorthandPropertyAssignment)
-                    {
-                        var prop = property as PropertyAssignment;
-                        ExpressionSyntax csNameExpression = SyntaxFactory.LiteralExpression(
-                            SyntaxKind.StringLiteralExpression,
-                            SyntaxFactory.Literal(prop.Name.Text));
-                        InitializerExpressionSyntax itemInitExpr = SyntaxFactory
-                            .InitializerExpression(SyntaxKind.ComplexElementInitializerExpression)
-                            .AddExpressions(csNameExpression, prop.Initializer.ToCsNode<ExpressionSyntax>());
+                    var csNameExpression =
+                        SyntaxFactory.IdentifierName(prop.Name.Text);
+                    var itemInitExpr = SyntaxFactory.AssignmentExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        csNameExpression, 
+                        prop.Initializer.ToCsNode<ExpressionSyntax>());
 
-                        initItemExprs.Add(itemInitExpr);
-                    }
-                    else if (property.Kind == NodeKind.SpreadAssignment)
-                    {
-                        var prop = property as SpreadAssignment;
-                        ExpressionSyntax csNameExpression = SyntaxFactory.LiteralExpression(
-                            SyntaxKind.StringLiteralExpression,
-                            SyntaxFactory.Literal("__spread__"));
-                        InitializerExpressionSyntax itemInitExpr = SyntaxFactory
-                            .InitializerExpression(SyntaxKind.ComplexElementInitializerExpression)
-                            .AddExpressions(csNameExpression, prop.Expression.ToCsNode<ExpressionSyntax>());
-
-                        initItemExprs.Add(itemInitExpr);
-                    }
-                    else
-                    {
-                        initItemExprs.Add(SyntaxFactory.ParseExpression(this.CommentText(node.Text)));
-                    }
+                    initItemExprs.Add(itemInitExpr);
                 }
                 if (initItemExprs.Count > 0)
                 {
-                    return csObjLiteral.WithInitializer(SyntaxFactory.InitializerExpression(
+                    csObjLiteral = csObjLiteral.WithInitializer(SyntaxFactory.InitializerExpression(
                         SyntaxKind.CollectionInitializerExpression,
                         SyntaxFactory.SeparatedList(initItemExprs)));
                 }
-                return csObjLiteral;
+                ExpressionSyntax expr = csObjLiteral;
+                if (spread.Count > 0) expr = SpreadElementConverter.CreateSpreadOperator(expr, spread);
+                if (trivia.Length > 0) expr = expr.WithTrailingComment(trivia.ToString());
+                return expr;
             }
         }
 
     }
 }
-

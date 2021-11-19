@@ -18,17 +18,17 @@ namespace TypeScript.Converter.CSharp
             if (node.Literal.Kind == NodeKind.StringLiteral)
             {
                 return NodeHelper.CreateNode(NodeKind.StringKeyword).ToCsNode<TypeSyntax>()
-                    .WithTrailingTrivia(SyntaxFactory.Comment("/*" + node.Text + "*/"));
+                    .WithTrailingComment(node.Text);
             }
             else if (node.Literal.Kind == NodeKind.NumericLiteral)
             {
                 return NodeHelper.CreateNode(NodeKind.NumberKeyword).ToCsNode<TypeSyntax>()
-                    .WithTrailingTrivia(SyntaxFactory.Comment("/*" + node.Text + "*/"));
+                    .WithTrailingComment(node.Text);
             }
             else if (node.Literal.Kind == NodeKind.TrueKeyword || node.Literal.Kind == NodeKind.FalseKeyword)
             {
                 return NodeHelper.CreateNode(NodeKind.BooleanKeyword).ToCsNode<TypeSyntax>()
-                    .WithTrailingTrivia(SyntaxFactory.Comment("/*" + node.Text + "*/"));
+                    .WithTrailingComment(node.Text);
             }
 
             //TODO: NOT SUPPORT

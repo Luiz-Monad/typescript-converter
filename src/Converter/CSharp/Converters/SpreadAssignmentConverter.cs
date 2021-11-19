@@ -14,10 +14,11 @@ namespace TypeScript.Converter.CSharp
     {
         public CSharpSyntaxNode Convert(SpreadAssignment node)
         {
+            // this shouldn't be called anymore as (Array|Object)LiteralExpressionConverter takes care of it.
             return SyntaxFactory
                 .Argument(node.Expression.ToCsNode<ExpressionSyntax>())
                 .WithNameColon(SyntaxFactory.NameColon("__spread__"));
         }
+
     }
 }
-

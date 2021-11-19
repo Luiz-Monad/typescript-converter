@@ -5,20 +5,13 @@ using Newtonsoft.Json.Linq;
 
 namespace TypeScript.Syntax
 {
-    public class SpreadAssignment : Expression
+    public class SpreadAssignment : SpreadElement
     {
         #region Properties
         public override NodeKind Kind
         {
             get { return NodeKind.SpreadAssignment; }
         }
-
-        public Node Expression
-        {
-            get;
-            private set;
-        }
-
         #endregion
 
 
@@ -36,10 +29,6 @@ namespace TypeScript.Syntax
             string nodeName = childNode.NodeName;
             switch (nodeName)
             {
-                case "expression":
-                    this.Expression = childNode;
-                    break;
-
                 default:
                     this.ProcessUnknownNode(childNode);
                     break;

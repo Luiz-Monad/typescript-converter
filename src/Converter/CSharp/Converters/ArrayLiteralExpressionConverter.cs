@@ -30,12 +30,29 @@ namespace TypeScript.Converter.CSharp
             }
             else
             {
+                var spread = new List<SpreadElement>();
+                var elements = new List<Node>();
+
+                foreach (Node item in node.Elements)
+                {
+                    if (item.Kind == NodeKind.SpreadElement)
+                    {
+                        spread.Add(item as SpreadElement);
+                    }
+                    else
+                    {
+                        elements.Add(item);
+                    }
+                }
+
                 InitializerExpressionSyntax csInitilizerExprs = SyntaxFactory
                     .InitializerExpression(SyntaxKind.CollectionInitializerExpression)
-                    .AddExpressions(node.Elements.ToCsNodes<ExpressionSyntax>());
-                return SyntaxFactory
+                    .AddExpressions(elements.ToCsNodes<ExpressionSyntax>());
+                ExpressionSyntax expr = SyntaxFactory
                     .ObjectCreationExpression(csType)
                     .WithInitializer(csInitilizerExprs);
+                if (spread.Count > 0) expr = SpreadElementConverter.CreateSpreadOperator(expr, spread);
+                return expr;
             }
         }
     }

@@ -16,7 +16,7 @@ namespace TypeScript.Syntax
         public Node Expression
         {
             get;
-            private set;
+            protected set;
         }
         #endregion
 
