@@ -56,7 +56,7 @@ namespace TypeScript.Converter.CSharp
                     }
                     else
                     {
-                        spread.Add(NodeHelper.CreateNode(NodeKind.SingleLineCommentTrivia, this.CommentText(node.Text)));
+                        spread.Add(NodeHelper.CreateNode(NodeKind.WhitespaceTrivia, this.CommentText(node.Text)));
                     }
                 }
                 if (spread.Count > 0)

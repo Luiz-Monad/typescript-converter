@@ -18,6 +18,22 @@ namespace TypeScript.Converter.CSharp
 
             if (members.Count == 0)
             {
+                if (node.Parent.Kind == NodeKind.ObjectLiteralExpression)
+                {
+                    var csType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+                    if (this.Context.Config.PreferTypeScriptType)
+                    {
+                        return SyntaxFactory.GenericName("Hashtable").AddTypeArgumentListArguments(
+                            SyntaxFactory.IdentifierName("String"),
+                            csType);
+                    }
+                    else
+                    {
+                        return SyntaxFactory.GenericName("Dictionary").AddTypeArgumentListArguments(
+                            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                            csType);
+                    }
+                }
                 //TODO: NOT SUPPORT
                 return SyntaxFactory.ParseExpression(this.CommentText(node.Text));
             }

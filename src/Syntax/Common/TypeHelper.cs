@@ -435,9 +435,9 @@ namespace TypeScript.Syntax
             return null;
         }
 
-        private static Node GetArrayLiteralType(ArrayLiteralExpression arrayLiteral)
+        private static Node GetArrayLiteralType(ArrayLiteralExpression arrayLiteral, bool skipDeclaration = false)
         {
-            Node type = GetDeclarationType(arrayLiteral);
+            Node type = skipDeclaration ? null : GetDeclarationType(arrayLiteral);
             if (type != null)
             {
                 return type;
@@ -462,9 +462,9 @@ namespace TypeScript.Syntax
             return arrayType;
         }
 
-        private static Node GetObjectLiteralType(ObjectLiteralExpression objectLiteral)
+        private static Node GetObjectLiteralType(ObjectLiteralExpression objectLiteral, bool skipDeclaration = false)
         {
-            Node type = GetDeclarationType(objectLiteral);
+            Node type = skipDeclaration ? null : GetDeclarationType(objectLiteral);
             if (type != null)
             {
                 return type;
@@ -495,7 +495,15 @@ namespace TypeScript.Syntax
                         PropertyAssignment prop = property as PropertyAssignment;
                         Node initValue = prop.Initializer;
 
-                        if (initValue.Kind != NodeKind.ObjectLiteralExpression && initValue.Kind != NodeKind.ArrayLiteralExpression)
+                        if (initValue.Kind == NodeKind.ObjectLiteralExpression)
+                        {
+                            elementType = GetObjectLiteralType(initValue as ObjectLiteralExpression, true);
+                        }
+                        else if (initValue.Kind == NodeKind.ArrayLiteralExpression)
+                        {
+                            elementType = GetArrayLiteralType(initValue as ArrayLiteralExpression, true);
+                        }
+                        else
                         {
                             elementType = GetNodeType(initValue);
                         }

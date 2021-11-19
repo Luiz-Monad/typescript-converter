@@ -103,7 +103,6 @@ namespace TypeScript.Converter.CSharp
             switch (node.Kind)
             {
                 //case NodeKind.UnionType:
-                case NodeKind.LiteralType:
                 case NodeKind.ForInStatement:
                 case NodeKind.ArrayBindingPattern:
                 case NodeKind.BindingElement:
@@ -111,6 +110,13 @@ namespace TypeScript.Converter.CSharp
                 case NodeKind.FunctionType:
                 case NodeKind.InKeyword:
                     return false;
+
+                case NodeKind.LiteralType:
+                    return
+                        (node as LiteralType).Kind != NodeKind.StringLiteral &&
+                        (node as LiteralType).Kind != NodeKind.NumericLiteral &&
+                        (node as LiteralType).Kind != NodeKind.TrueKeyword &&
+                        (node as LiteralType).Kind != NodeKind.FalseKeyword;
 
                 case NodeKind.DeleteExpression:
                     return (node as DeleteExpression).Expression.Kind == NodeKind.ElementAccessExpression;
