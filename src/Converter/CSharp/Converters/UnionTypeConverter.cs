@@ -27,7 +27,8 @@ namespace TypeScript.Converter.CSharp
                     return type.ToCsNode<TypeSyntax>();
                 }
             }
-            return SyntaxFactory.IdentifierName("dynamic");
+            return SyntaxFactory.GenericName("Choice").AddTypeArgumentListArguments(
+                node.Types.ToCsNodes<TypeSyntax>());
         }
 
         private bool IsNullableType(Node type)

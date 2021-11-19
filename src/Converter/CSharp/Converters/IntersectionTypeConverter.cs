@@ -15,7 +15,9 @@ namespace TypeScript.Converter.CSharp
     {
         public CSharpSyntaxNode Convert(IntersectionType node)
         {
-            return SyntaxFactory.IdentifierName("dynamic");
+            // Todo: flatten the type tree
+            return SyntaxFactory.GenericName("Combine").AddTypeArgumentListArguments(
+                node.Types.ToCsNodes<TypeSyntax>());
         }
     }
 }
