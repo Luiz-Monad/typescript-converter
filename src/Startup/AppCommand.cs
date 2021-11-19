@@ -69,7 +69,7 @@ namespace TypeScript.Converter
 
             List<Document> documents = this.BuildAst(arg.AllFiles);
             List<Document> includedDocuments = (arg.Files == arg.AllFiles ? documents : documents.FindAll(doc => arg.Files.Contains(doc.Path)));
-            if (this.ConfirmConvert(includedDocuments))
+            if (this.ConfirmConvert(includedDocuments, arg))
             {
                 Project project = new Project(arg.BasePath, documents, includedDocuments);
                 ConverterContext context = this.CreateConverterContext(project, arg.Config);
@@ -109,6 +109,11 @@ namespace TypeScript.Converter
                 "Directory to save the converted result.",
                 CommandOptionType.SingleValue);
 
+            app.Option(
+                "-y|--yes",
+                "Always confirm.",
+                CommandOptionType.NoValue);
+
             return app;
         }
         #endregion
@@ -142,8 +147,9 @@ namespace TypeScript.Converter
         /// Search lost and unsupport syntax node.
         /// </summary>
         /// <param name="tsDocs">The ast documents.</param>
+        /// <param name="arg">Execute argument.</param>
         /// <returns></returns>
-        private bool ConfirmConvert(List<Document> tsDocs)
+        private bool ConfirmConvert(List<Document> tsDocs, ExecuteArgument arg)
         {
             DateTime startTime = DateTime.Now;
             this.Log(string.Format("Starting search lost nodes and not implement node types."));
@@ -156,7 +162,9 @@ namespace TypeScript.Converter
             //
             if (unSupportedNodes.Count > 0)
             {
-                this.Log("Find unsupported node kinds: " + string.Join(",", unSupportedNodes) + ". Do you want continue to convert? (yes|no) ");
+                this.Log("Found unsupported node kinds: " + string.Join(",", unSupportedNodes) + ".");
+                if (arg.DontAsk) return true;
+                this.Log("Do you want continue to convert? (yes|no) ");
                 string confirm = Console.ReadLine().ToLower();
                 if (confirm != "y" && confirm != "yes")
                 {

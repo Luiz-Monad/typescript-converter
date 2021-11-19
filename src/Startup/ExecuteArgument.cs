@@ -13,6 +13,12 @@ namespace TypeScript.Converter
         {
         }
 
+        public bool DontAsk
+        {
+            get;
+            private set;
+        }
+
         #region Properties
         public List<string> AllFiles
         {
@@ -87,7 +93,7 @@ namespace TypeScript.Converter
             string savePath;
             if (output.FlatOutput)
             {
-                savePath = Path.Combine(outputPath, Path.GetFileName(sourcePath).Split('.')[0] + ".cs");
+                savePath = sourcePath;
             }
             else
             {
@@ -96,8 +102,12 @@ namespace TypeScript.Converter
                 {
                     relativePath = Path.GetFileName(sourcePath);
                 }
-                savePath = Path.Combine(outputPath, relativePath.Split('.')[0] + ".cs");
+                savePath = relativePath;
             }
+            savePath = Path.Combine(outputPath,
+                Path.GetDirectoryName(savePath),
+                Path.GetFileNameWithoutExtension(
+                    Path.GetFileNameWithoutExtension(savePath)) + ".cs");
 
             string dirName = Path.GetDirectoryName(savePath);
             if (!string.IsNullOrEmpty(dirName) && !Directory.Exists(dirName))
@@ -114,6 +124,7 @@ namespace TypeScript.Converter
             CommandOption excludeOption = options[2];
             CommandOption sourceOption = options[3];
             CommandOption outOption = options[4];
+            CommandOption yesOption = options[5];
 
             // config
             Config config = new Config();
@@ -133,6 +144,7 @@ namespace TypeScript.Converter
             }
 
             //
+            bool dontAsk = yesOption.HasValue();
             string basePath = string.Empty;
             List<Output> outputs = new List<Output>();
             List<string> allFiles = new List<string>();
@@ -203,6 +215,7 @@ namespace TypeScript.Converter
                 Files = files,
                 Outputs = outputs,
                 BasePath = basePath,
+                DontAsk = dontAsk,
 
                 Config = config
             };
