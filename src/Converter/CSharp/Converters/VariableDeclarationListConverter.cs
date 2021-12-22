@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TypeScript.Syntax;
+using System.Linq;
 
 namespace TypeScript.Converter.CSharp
 {
@@ -25,11 +26,18 @@ namespace TypeScript.Converter.CSharp
                 }
             }
 
+            var decls = node.Declarations.ToCsNodes<CSharpSyntaxNode>();
+
+            // check binding rewrites
+            if (!decls.All(d => d is VariableDeclaratorSyntax))
+            {
+                return decls[0];
+            }
+
             TypeSyntax csType = isVar ? SyntaxFactory.IdentifierName("var") : node.Type.ToCsNode<TypeSyntax>();
             return SyntaxFactory
                 .VariableDeclaration(csType)
-                .AddVariables(node.Declarations.ToCsNodes<VariableDeclaratorSyntax>());
+                .AddVariables(decls.OfType<VariableDeclaratorSyntax>().ToArray());
         }
     }
 }
-

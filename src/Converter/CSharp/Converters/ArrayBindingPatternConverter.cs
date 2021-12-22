@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TypeScript.Syntax;
+using System.Linq;
 
 namespace TypeScript.Converter.CSharp
 {
@@ -14,9 +15,9 @@ namespace TypeScript.Converter.CSharp
     {
         public CSharpSyntaxNode Convert(ArrayBindingPattern node)
         {
-            //TODO: NOT SUPPORT:   (sender: any, args: EventArgs): void;
-            return SyntaxFactory.ParseExpression(this.CommentText(node.Text));
+            return ObjectBindingExpressionConverter.CreateBinding(node, node.Elements);
         }
+
     }
 }
 

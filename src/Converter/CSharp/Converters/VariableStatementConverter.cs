@@ -14,10 +14,15 @@ namespace TypeScript.Converter.CSharp
     {
         public CSharpSyntaxNode Convert(VariableStatement node)
         {
-            return SyntaxFactory
-                .LocalDeclarationStatement(node.DeclarationList.ToCsNode<VariableDeclarationSyntax>())
-                .AddModifiers(node.Modifiers.ToCsNodes<SyntaxToken>());
+            var declaration = node.DeclarationList.ToCsNode<CSharpSyntaxNode>();
+            if (declaration is VariableDeclarationSyntax var)
+            {
+                return SyntaxFactory
+                    .LocalDeclarationStatement(var)
+                    .AddModifiers(node.Modifiers.ToCsNodes<SyntaxToken>());
+            }
+            //modified from bindings
+            return declaration; 
         }
     }
 }
-

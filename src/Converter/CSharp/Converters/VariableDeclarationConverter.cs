@@ -14,7 +14,11 @@ namespace TypeScript.Converter.CSharp
     {
         public CSharpSyntaxNode Convert(VariableDeclarationNode node)
         {
-            //TODO: name is ArrayBindingPattern
+            if (node.Name.Kind != NodeKind.Identifier)
+            {
+                return node.Name.ToCsNode<AssignmentExpressionSyntax>();
+            }
+
             VariableDeclaratorSyntax csVariable = SyntaxFactory.VariableDeclarator(node.Name.Text);
 
             if (node.Initializer != null)
@@ -26,4 +30,3 @@ namespace TypeScript.Converter.CSharp
         }
     }
 }
-
