@@ -9,4 +9,5 @@ if not exist build\lib md build\lib
 copy /y ".\src\TypeScriptAstBuilder\lib\*.js" ".\build\lib\"
 copy /y ".\src\TypeScriptAstBuilder\package.json" ".\build\lib\package.json"
 
-npm --prefix .\build\lib install .\build\lib
+yarn --cwd .\build\lib install
+

@@ -3,14 +3,16 @@
   "exclude": [],
   "samples": [],
   "outputs": [
-    "path": "",
-	"patterns": [],
-	"flatOutput": false,
-	"preferTypeScriptType": true,
-    "namespace": "MyNamespace",
-	"usings": [
-	  "System"
-	]
+    {
+      "path": "",
+      "patterns": [],
+      "flatOutput": false,
+      "preferTypeScriptType": true,
+      "namespace": "MyNamespace",
+      "usings": [
+        "System"
+      ]
+    }
   ],
   "namespaceMappings": [],
   "omittedQualifiedNames": []

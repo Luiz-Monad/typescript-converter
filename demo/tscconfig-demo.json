@@ -1,18 +1,20 @@
 {
-  "include": ["ast"],
+  "include": [
+    "ast"
+  ],
   "exclude": [],
   "samples": [],
   "outputs": [
     {
-       "path": "csharp",
-       "flatOutput": false,
-       "preferTypeScriptType": true,
-       "namespace": "Demo",
-       "usings": [
+      "path": "csharp",
+      "flatOutput": false,
+      "preferTypeScriptType": true,
+      "namespace": "Demo",
+      "usings": [
         "System.Linq",
         "TypeScript.CSharp"
-       ]
-     }
+      ]
+    }
   ],
   "namespaceMappings": [],
   "omittedQualifiedNames": []
