@@ -18,14 +18,14 @@ namespace TypeScript.Converter.CSharp
 
         #region Constructor
         /// <summary>
-        /// 
+        /// Constructs a converter
         /// </summary>
         public Converter() : this(new ConverterContext(null))
         {
         }
 
         /// <summary>
-        /// 
+        /// Constructs a converter
         /// </summary>
         /// <param name="context"></param>
         public Converter(ConverterContext context)
@@ -165,7 +165,7 @@ namespace TypeScript.Converter.CSharp
         /// 
         /// </summary>
         /// <param name="text"></param>
-        /// <retu   rns></returns>
+        /// <returns></returns>
         protected string CommentText(string text)
         {
             return "AAA___" + text + "___AAA";

@@ -71,7 +71,7 @@ namespace TypeScript.Syntax
             }
         }
 
-        public List<Node> MouduleDeclarations
+        public List<Node> ModuleDeclarations
         {
             get
             {
@@ -88,7 +88,7 @@ namespace TypeScript.Syntax
                 {
                     return this.IsTypeNode(n);
                 }));
-                this.MouduleDeclarations.ForEach(m =>
+                this.ModuleDeclarations.ForEach(m =>
                 {
                     ModuleBlock mBlock = ((ModuleDeclaration)m).GetModuleBlock();
                     if (mBlock != null)
@@ -112,7 +112,7 @@ namespace TypeScript.Syntax
                 {
                     return n.Kind == NodeKind.FunctionDeclaration;
                 }));
-                this.MouduleDeclarations.ForEach(m =>
+                this.ModuleDeclarations.ForEach(m =>
                 {
                     ModuleBlock mBlock = ((ModuleDeclaration)m).GetModuleBlock();
                     if (mBlock != null)
