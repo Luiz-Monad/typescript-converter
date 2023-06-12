@@ -2,3 +2,6 @@
 **/bin
 **/obj
 build
+demo/ast/*
+demo-baileys/ast/*
+src/Startup/Properties/launchSettings.json
