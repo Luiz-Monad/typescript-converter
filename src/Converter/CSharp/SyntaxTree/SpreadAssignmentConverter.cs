@@ -14,9 +14,8 @@ namespace TypeScript.Converter.CSharp
     {
         public CSharpSyntaxNode Convert(SpreadAssignment node)
         {
-            return SyntaxFactory
-                .Argument(node.Expression.ToCsSyntaxTree<ExpressionSyntax>())
-                .WithNameColon(SyntaxFactory.NameColon("__spread__"));
+            // this shouldn't be called anymore as (Array|Object)LiteralExpressionConverter takes care of it.
+            return SyntaxFactory.ParseExpression(this.CommentText(node.Text));
         }
     }
 }

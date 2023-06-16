@@ -14,7 +14,7 @@ namespace TypeScript.Converter.CSharp
     {
         public CSharpSyntaxNode Convert(ArrayBindingPattern node)
         {
-            //TODO: NOT SUPPORT:   (sender: any, args: EventArgs): void;
+            // this shouldn't be called anymore as (Array|Object)LiteralExpressionConverter takes care of it.
             return SyntaxFactory.ParseExpression(this.CommentText(node.Text));
         }
     }

@@ -19,19 +19,19 @@ namespace TypeScript.Converter.CSharp
             {
                 case NodeKind.StringLiteral:
                     return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                                    .WithTrailingTrivia(SyntaxFactory.Comment("/*" + node.Literal.Text + "*/"));
+                        .WithTrailingComment(node.Literal.Text);
                 case NodeKind.NumericLiteral:
                     return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword))
-                                    .WithTrailingTrivia(SyntaxFactory.Comment("/*" + node.Literal.Text + "*/"));
+                        .WithTrailingComment(node.Literal.Text);
                 case NodeKind.TrueKeyword:
                 case NodeKind.FalseKeyword:
                     return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword))
-                                    .WithTrailingTrivia(SyntaxFactory.Comment("/*" + node.Literal.Text + "*/"));
+                        .WithTrailingComment(node.Literal.Text);
             }
 
             //TODO: NOT SUPPORT
             return SyntaxFactory.IdentifierName("dynamic")
-                .WithTrailingTrivia(SyntaxFactory.Comment("/*" + node.Literal.Text + "*/"));
+                    .WithTrailingComment(node.Text);
         }
     }
 }

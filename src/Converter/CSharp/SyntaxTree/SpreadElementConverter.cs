@@ -32,7 +32,7 @@ namespace TypeScript.Converter.CSharp
                 }
             }
 
-            //TODO: NOT SUPPORT
+            // this shouldn't be called anymore as (Array|Object)LiteralExpressionConverter takes care of it.
             return SyntaxFactory.ParseExpression(this.CommentText(node.Text));
         }
 
@@ -71,6 +71,28 @@ namespace TypeScript.Converter.CSharp
             }
             return true;
         }
+
+        internal static ExpressionSyntax CreateSpreadOperator(ExpressionSyntax expr, IList<Node> spreadExpr)
+        {
+            var arguments = new List<ArgumentSyntax>();
+            arguments.AddRange(spreadExpr.Select(s => SyntaxFactory.Argument(s.ToCsSyntaxTree<ExpressionSyntax>())));
+
+            // static call
+            //arguments.Insert(0, SyntaxFactory.Argument(expr));
+            //return SyntaxFactory
+            //    .InvocationExpression(SyntaxFactory.ParseExpression("Object.Spread"))
+            //    .AddArgumentListArguments(arguments.ToArray());
+
+            // extension method
+            return
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.ParenthesizedExpression(expr),
+                        SyntaxFactory.IdentifierName("Spread")))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(arguments.ToArray())));
+        }
+
     }
 }
-

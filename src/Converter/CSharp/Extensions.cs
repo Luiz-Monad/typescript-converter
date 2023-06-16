@@ -187,4 +187,20 @@ namespace TypeScript.Converter.CSharp
         }
     }
     #endregion
+
+    #region SyntaxFactory
+    internal static class SyntaxFactoryExtension
+    {
+        internal static TSyntax WithLeadingComment<TSyntax>(this TSyntax node, string comment) where TSyntax : SyntaxNode
+        {
+            return node.WithLeadingTrivia(SyntaxFactory.Comment("/*" + comment + "*/"));
+        }
+
+        internal static TSyntax WithTrailingComment<TSyntax>(this TSyntax node, string comment) where TSyntax : SyntaxNode
+        {
+            return node.WithTrailingTrivia(SyntaxFactory.Comment("/*" + comment + "*/"));
+        }
+    }
+
+    #endregion  
 }

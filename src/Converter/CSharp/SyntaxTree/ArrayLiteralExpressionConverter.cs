@@ -32,23 +32,30 @@ namespace TypeScript.Converter.CSharp
                     .ObjectCreationExpression(csType)
                     .AddArgumentListArguments();
             }
-            else if (node.Elements.Count == 1 && node.Elements[0].Kind == NodeKind.SpreadElement)
+
+            var spread = new List<Node>();
+            var elements = new List<Node>();
+
+            foreach (Node item in node.Elements)
             {
-                Node argument = ((SpreadElement)node.Elements[0]).Expression;
-                return SyntaxFactory
-                   .ObjectCreationExpression(csType)
-                   .AddArgumentListArguments(SyntaxFactory.Argument(argument.ToCsSyntaxTree<ExpressionSyntax>()));
+                if (item.Kind == NodeKind.SpreadElement)
+                {
+                    spread.Add(((SpreadElement)item).Expression);
+                }
+                else
+                {
+                    elements.Add(item);
+                }
             }
-            else
-            {
-                InitializerExpressionSyntax csInitilizerExprs = SyntaxFactory
-                    .InitializerExpression(SyntaxKind.CollectionInitializerExpression)
-                    .AddExpressions(node.Elements.ToCsSyntaxTrees<ExpressionSyntax>());
-                return SyntaxFactory
-                    .ObjectCreationExpression(csType)
-                    .WithInitializer(csInitilizerExprs);
-            }
+
+            var csInitilizerExprs = SyntaxFactory
+                .InitializerExpression(SyntaxKind.CollectionInitializerExpression)
+                .AddExpressions(elements.ToCsSyntaxTrees<ExpressionSyntax>());
+            var expr = (ExpressionSyntax)SyntaxFactory
+                .ObjectCreationExpression(csType)
+                .WithInitializer(csInitilizerExprs);
+            if (spread.Count > 0) expr = SpreadElementConverter.CreateSpreadOperator(expr, spread);
+            return expr;
         }
     }
-
 }

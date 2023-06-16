@@ -16,7 +16,7 @@ namespace TypeScript.Converter.CSharp
         {
             //keyof
             return SyntaxFactory.IdentifierName("dynamic")
-                .WithLeadingTrivia(SyntaxFactory.Comment($"/*{node.Text}*/"));
+                .WithLeadingComment(node.Text);
         }
     }
 }
