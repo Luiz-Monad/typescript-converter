@@ -13,16 +13,12 @@ namespace Bailey
         {
             this.isOnWhatsApp = (str) =>
             {
-                var { status, jid, biz } = await this.query(new WAQuery()
-                {{"json", new Array<String>{"query", "exist", str}}, {"requiresPhoneConnection", false}});
+                var { status, jid, biz } = await this.query(new WAQuery() { { "json", new List<string> { "query", "exist", str } }, { "requiresPhoneConnection", false } });
                 if (status == 200)
                     return (exists: true, jid: whatsappID(jid), isBusiness: biz as bool);
-            }
-
-            ;
-            this.updatePresence = (jid, type) => this.sendBinary(new WANode{"action", (epoch: this.msgCount.toString(), type: "set"), new Array<WANode>{new Array<dynamic>{"presence", (type: type, to: jid), null}}}, new WATag{WAMetric.presence, WAFlag[type]}, undefined, true);
-            this.requestPresenceUpdate = (jid) => this.query(new WAQuery()
-            {{"json", new Array<String>{"action", "presence", "subscribe", jid}}});
+            };
+            this.updatePresence = (jid, type) => this.sendBinary(new WANode { "action", (epoch: this.msgCount.toString(), type: "set"), new List<WANode> { new List<dynamic> { "presence", (type: type, to: jid), null } } }, new WATag { WAMetric.presence, WAFlag[type] }, undefined, true);
+            this.requestPresenceUpdate = (jid) => this.query(new WAQuery() { { "json", new List<string> { "action", "presence", "subscribe", jid } } });
         }
 
         /// <summary>
@@ -34,12 +30,7 @@ namespace Bailey
         /// <returns>
         /// undefined if the number doesn't exists, otherwise the correctly formatted jid
         /// </returns>
-        public dynamic isOnWhatsApp
-        {
-            get;
-            set;
-        }
-
+        public dynamic isOnWhatsApp { get; set; }
         /// <summary>
         /// Tell someone about your presence -- online, typing, offline etc.
         /// </summary>
@@ -49,34 +40,24 @@ namespace Bailey
         /// <param name = "type">
         /// your presence
         /// </param>
-        public dynamic updatePresence
-        {
-            get;
-            set;
-        }
-
+        public dynamic updatePresence { get; set; }
         /// <summary>
         /// Request an update on the presence of a user
         /// </summary>
-        public dynamic requestPresenceUpdate
-        {
-            get;
-            set;
-        }
+        public dynamic requestPresenceUpdate { get; set; }
 
         /// <summary>
         /// Query the status of the person (see groupMetadata() for groups)
         /// </summary>
-        async public void getStatus(String jid = null)
+        async public void getStatus(string jid = null)
         {
-            Hashtable<String, String> status = await this.query(new WAQuery()
-            {{"json", new Array<String>{"query", "Status", jid || this.user.jid}}, {"requiresPhoneConnection", false}});
+            Dictionary<string, string> status = await this.query(new WAQuery() { { "json", new List<string> { "query", "Status", jid || this.user.jid } }, { "requiresPhoneConnection", false } });
             return status;
         }
 
-        async public void setStatus(String status)
+        async public void setStatus(string status)
         {
-            var response = await this.setQuery(new Array<WANode>{new Array<WANode>{"status", null, Buffer.from(status, "utf-8")}});
+            var response = await this.setQuery(new List<WANode> { new List<WANode> { "status", null, Buffer.from(status, "utf-8") } });
             this.emit("contact-update", (jid: this.user.jid, status: status));
             return response;
         }
@@ -92,27 +73,34 @@ namespace Bailey
                 AAA___ delete  profile . business_hours . config  ___AAA ;
             }
 
-            var json = new Array<String>{"action", "editBusinessProfile", (__spread__: profile, v: 2)};
+            var json = new List<string>
+            {
+                "action",
+                "editBusinessProfile",
+                (__spread__: profile, v: 2)
+            };
             dynamic response;
             try
             {
-                response = await this.query(new WAQuery()
-                {{"json", json}, {"expect200", true}, {"requiresPhoneConnection", true}});
+                response = await this.query(new WAQuery() { { "json", json }, { "expect200", true }, { "requiresPhoneConnection", true } });
             }
             catch (Exception _)
             {
-                return new void ()
-                {{"status", 400}};
+                return new
+                {
+                    status = 400
+                };
             }
 
-            return new void ()
-            {{"status", response.status}};
+            return new
+            {
+                status = response.status
+            };
         }
 
-        async public void updateProfileName(String name)
+        async public void updateProfileName(string name)
         {
-            var response = (await this.setQuery(new Array<WANode>{new Array<WANode>{"profile", new Hashtable<String, dynamic>()
-            {{"name", name}}, null}})) as dynamic as (double status, String pushname);
+            var response = (await this.setQuery(new List<WANode> { new List<WANode> { "profile", new Dictionary<string, dynamic>() { { "name", name } }, null } })) as dynamic as (double status, string pushname);
             if (response.status == 200)
             {
                 this.user.name = response.pushname;
@@ -127,9 +115,13 @@ namespace Bailey
         /// </summary>
         async public void getContacts()
         {
-            var json = new Array<String>{"query", (epoch: this.msgCount.toString(), type: "contacts"), null};
-            var response = await this.query(new WAQuery()
-            {{"json", json}, {"binaryTags", new Array<WAMetric>{WAMetric.queryContact, WAFlag.ignore}}, {"expect200", true}, {"requiresPhoneConnection", true}});
+            var json = new List<string>
+            {
+                "query",
+                (epoch: this.msgCount.toString(), type: "contacts"),
+                null
+            };
+            var response = await this.query(new WAQuery() { { "json", json }, { "binaryTags", new List<WAMetric> { WAMetric.queryContact, WAFlag.ignore } }, { "expect200", true }, { "requiresPhoneConnection", true } });
             return response;
         }
 
@@ -138,15 +130,19 @@ namespace Bailey
         /// </summary>
         async public void getStories()
         {
-            var json = new Array<String>{"query", (epoch: this.msgCount.toString(), type: "status"), null};
-            var response = await this.query(new WAQuery()
-            {{"json", json}, {"binaryTags", new Array<WAMetric>{WAMetric.queryStatus, WAFlag.ignore}}, {"expect200", true}, {"requiresPhoneConnection", true}}) as WANode;
+            var json = new List<string>
+            {
+                "query",
+                (epoch: this.msgCount.toString(), type: "status"),
+                null
+            };
+            var response = await this.query(new WAQuery() { { "json", json }, { "binaryTags", new List<WAMetric> { WAMetric.queryStatus, WAFlag.ignore } }, { "expect200", true }, { "requiresPhoneConnection", true } }) as WANode;
             if (Array.isArray(response[2]))
             {
-                return response[2].map((row) => ((unread: row[1].unread, count: row[1].count, messages: Array.isArray(row[2]) ? row[2].map((m) => m[2]) : new dynamic()) as (double unread, double count, Array<WAMessage> messages)));
+                return response[2].map((row) => ((unread: row[1].unread, count: row[1].count, messages: Array.isArray(row[2]) ? row[2].map((m) => m[2]) : new dynamic()) as (double unread, double count, List<WAMessage> messages)));
             }
 
-            return new void ();
+            return new List<>();
         }
 
         /// <summary>
@@ -154,18 +150,21 @@ namespace Bailey
         /// </summary>
         async public void getChats()
         {
-            var json = new Array<String>{"query", (epoch: this.msgCount.toString(), type: "chat"), null};
-            return this.query(new WAQuery()
-            {{"json", json}, {"binaryTags", new Array<double>{5, WAFlag.ignore}}, {"expect200", true}});
+            var json = new List<string>
+            {
+                "query",
+                (epoch: this.msgCount.toString(), type: "chat"),
+                null
+            };
+            return this.query(new WAQuery() { { "json", json }, { "binaryTags", new List<double> { 5, WAFlag.ignore } }, { "expect200", true } });
         }
 
         /// <summary>
         /// Query broadcast list info
         /// </summary>
-        async public void getBroadcastListInfo(String jid)
+        async public void getBroadcastListInfo(string jid)
         {
-            return this.query(new WAQuery()
-            {{"json", new Array<String>{"query", "contact", jid}}, {"expect200", true}, {"requiresPhoneConnection", true}}) as Promise<WABroadcastListInfo>;
+            return this.query(new WAQuery() { { "json", new List<string> { "query", "contact", jid } }, { "expect200", true }, { "requiresPhoneConnection", true } }) as Promise<WABroadcastListInfo>;
         }
 
         /// <summary>
@@ -183,13 +182,16 @@ namespace Bailey
         /// <returns>
         /// the chats & the cursor to fetch the next page
         /// </returns>
-        public void loadChats(double count, String before, WALoadChatOptions options = new WALoadChatOptions())
+        public void loadChats(double count, string before, WALoadChatOptions options = new WALoadChatOptions())
         {
             var searchString = options.searchString.toLowerCase();
             var chats = this.chats.paginated(before, count, options && ((chat) => ((TypeOf(options.custom) != "function" || options.custom(chat)) && (TypeOf(searchString) == "undefined" || chat.name.toLowerCase().includes(searchString) || chat.jid.includes(searchString)))));
             var cursor = (chats[chats.length - 1] && chats.length >= count) && this.chatOrderingKey.key(chats[chats.length - 1]);
-            return new void ()
-            {{"chats", chats}, {"cursor", cursor}};
+            return new
+            {
+                chats = chats,
+                cursor = cursor
+            };
         }
 
         /// <summary>
@@ -199,13 +201,32 @@ namespace Bailey
         /// </param>
         /// <param name = "img">
         /// </param>
-        async public void updateProfilePicture(String jid, Buffer img)
+        async public void updateProfilePicture(string jid, Buffer img)
         {
             jid = whatsappID(jid);
             var data = await generateProfilePicture(img);
             var tag = this.generateMessageTag();
-            WANode query = new WANode{"picture", (jid: jid, id: tag, type: "set"), new Array<WANode>{new Array<dynamic>{"image", null, data.img}, new Array<dynamic>{"preview", null, data.preview}}};
-            var response = await (this.setQuery(new Array<WANode>{query}, new WATag{WAMetric.picture, 136}, tag) as Promise<WAProfilePictureChange>);
+            WANode query = new WANode
+            {
+                "picture",
+                (jid: jid, id: tag, type: "set"),
+                new List<WANode>
+                {
+                    new List<dynamic>
+                    {
+                        "image",
+                        null,
+                        data.img
+                    },
+                    new List<dynamic>
+                    {
+                        "preview",
+                        null,
+                        data.preview
+                    }
+                }
+            };
+            var response = await (this.setQuery(new List<WANode> { query }, new WATag { WAMetric.picture, 136 }, tag) as Promise<WAProfilePictureChange>);
             if (jid == this.user.jid)
                 this.user.imgUrl = response.eurl;
             else if (this.chats.get(jid))
@@ -226,12 +247,35 @@ namespace Bailey
         /// <param name = "type">
         /// type of operation
         /// </param>
-        async public void blockUser(String jid, dynamic type = "add")
+        async public void blockUser(string jid, string /*add*/ type = "add")
         {
-            WANode json = new WANode{"block", new Hashtable<String, dynamic>()
-            {{"type", type}}, new Array<WANode>{new Array<dynamic>{"user", new Hashtable<String, dynamic>()
-            {{"jid", jid}}, null}}};
-            var result = await this.setQuery(new Array<WANode>{json}, new WATag{WAMetric.block, WAFlag.ignore});
+            WANode json = new WANode
+            {
+                "block",
+                new Dictionary<string, string /*add*/>()
+                {
+                    {
+                        "type",
+                        type
+                    }
+                },
+                new List<WANode>
+                {
+                    new List<dynamic>
+                    {
+                        "user",
+                        new Dictionary<string, dynamic>()
+                        {
+                            {
+                                "jid",
+                                jid
+                            }
+                        },
+                        null
+                    }
+                }
+            };
+            var result = await this.setQuery(new List<WANode> { json }, new WATag { WAMetric.block, WAFlag.ignore });
             if (result.status == 200)
             {
                 if (type == "add")
@@ -248,9 +292,21 @@ namespace Bailey
                 }
 
                 BlocklistUpdate update = new BlocklistUpdate()
-                {{"added", new Array<dynamic>()}, {"removed", new Array<dynamic>()}};
+                {
+                    {
+                        "added",
+                        new List<dynamic>()
+                    },
+                    {
+                        "removed",
+                        new List<dynamic>()
+                    }
+                };
                 var key = type == "add" ? "added" : "removed";
-                update[key] = new Array<String>{jid};
+                update[key] = new List<string>
+                {
+                    jid
+                };
                 this.emit("blocklist-update", update);
             }
 
@@ -266,7 +322,7 @@ namespace Bailey
         /// <returns>
         /// profile object or undefined if not business account
         /// </returns>
-        async public void getBusinessProfile(String jid)
+        async public void getBusinessProfile(string jid)
         {
             jid = whatsappID(jid);
             var {
@@ -274,11 +330,11 @@ namespace Bailey
                 profile,
                 wid 
             }]
-        } = await this.query(new WAQuery()
-            {{"json", new Array<String>{"query", "businessProfile", new Array<dynamic>{new Hashtable<String, dynamic>()
-            {{"wid", jid.replace("@s.whatsapp.net", "@c.us")}}}, 84}}, {"expect200", true}, {"requiresPhoneConnection", false}});
-            return new void ()
-            {{"wid", whatsappID(wid)}};
+        } = await this.query(new WAQuery() { { "json", new List<string> { "query", "businessProfile", new List<dynamic> { new Dictionary<string, dynamic>() { { "wid", jid.replace("@s.whatsapp.net", "@c.us") } } }, 84 } }, { "expect200", true }, { "requiresPhoneConnection", false } });
+            return new
+            {
+                wid = whatsappID(wid)
+            };
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Bailey
 {
     public class WAConnection : Base
     {
-        public WAConnection(): base()
+        public WAConnection() : base()
         {
             this.setMaxListeners(30);
             this.chatsDebounceTimeout.setTask(() =>
@@ -17,18 +17,15 @@ namespace Bailey
                 this.logger.debug("pinging with chats query");
                 this.sendChatsQuery(this.msgCount);
                 this.chatsDebounceTimeout.start();
-            }
-
-            );
+            });
             this.on("open", () =>
             {
-                this.sendBinary(new WANode{"query", (type: "contacts", epoch: "1"), null}, new WATag{WAMetric.queryContact, WAFlag.ignore});
-                this.sendBinary(new WANode{"query", (type: "status", epoch: "1"), null}, new WATag{WAMetric.queryStatus, WAFlag.ignore});
-                this.sendBinary(new WANode{"query", (type: "quick_reply", epoch: "1"), null}, new WATag{WAMetric.queryQuickReply, WAFlag.ignore});
-                this.sendBinary(new WANode{"query", (type: "label", epoch: "1"), null}, new WATag{WAMetric.queryLabel, WAFlag.ignore});
-                this.sendBinary(new WANode{"query", (type: "emoji", epoch: "1"), null}, new WATag{WAMetric.queryEmoji, WAFlag.ignore});
-                this.sendBinary(new WANode{"action", (type: "set", epoch: "1"), new Array<WANode>{new Array<dynamic>{"presence", new Hashtable<String, Presence>()
-                {{"type", Presence.available}}, null}}}, new WATag{WAMetric.presence, WAFlag.available});
+                this.sendBinary(new WANode { "query", (type: "contacts", epoch: "1"), null }, new WATag { WAMetric.queryContact, WAFlag.ignore });
+                this.sendBinary(new WANode { "query", (type: "status", epoch: "1"), null }, new WATag { WAMetric.queryStatus, WAFlag.ignore });
+                this.sendBinary(new WANode { "query", (type: "quick_reply", epoch: "1"), null }, new WATag { WAMetric.queryQuickReply, WAFlag.ignore });
+                this.sendBinary(new WANode { "query", (type: "label", epoch: "1"), null }, new WATag { WAMetric.queryLabel, WAFlag.ignore });
+                this.sendBinary(new WANode { "query", (type: "emoji", epoch: "1"), null }, new WATag { WAMetric.queryEmoji, WAFlag.ignore });
+                this.sendBinary(new WANode { "action", (type: "set", epoch: "1"), new List<WANode> { new List<dynamic> { "presence", new Dictionary<string, Presence>() { { "type", Presence.available } }, null } } }, new WATag { WAMetric.presence, WAFlag.available });
                 if (this.connectOptions.queryChatsTillReceived)
                 {
                     this.chatsDebounceTimeout.start();
@@ -39,9 +36,7 @@ namespace Bailey
                 }
 
                 this.logger.debug("sent init queries");
-            }
-
-            );
+            });
             this.on("CB:Cmd,type:disconnect", (json) => (this.state == "open" && this.unexpectedDisconnect(json[1].kind || "unknown")));
             this.on("CB:Pong", (json) =>
             {
@@ -53,12 +48,9 @@ namespace Bailey
                 else if (this.phoneConnected != json[1])
                 {
                     this.phoneConnected = json[1];
-                    this.emit("connection-phone-change", new Array<dynamic>()
-                    {{"connected", this.phoneConnected}});
+                    this.emit("connection-phone-change", new List<dynamic>() { { "connected", this.phoneConnected } });
                 }
-            }
-
-            );
+            });
             this.on("CB:response,type:chat", (json) =>
             {
                 if (json[1].duplicate || !json[2])
@@ -78,12 +70,10 @@ namespace Bailey
                     chat.count = +chat.count;
                     chat.messages = newMessagesDB();
                     chats.insertIfAbsent(chat);
-                }
-
-                );
+                });
                 this.logger.info($"received {json[2].length} chats");
                 var oldChats = this.chats;
-                var updatedChats = new Array<dynamic>();
+                var updatedChats = new List<dynamic>();
                 var hasNewChats = false;
                 chats.all().forEach((chat) =>
                 {
@@ -99,27 +89,21 @@ namespace Bailey
                         chat.messages = oldChat.messages;
                         if (oldChat.t != chat.t || oldChat.modify_tag != chat.modify_tag)
                         {
-                            var changes = shallowChanges(oldChat, chat, new Hashtable<String, bool>()
-                            {{"lookForDeletedKeys", true}});
+                            var changes = shallowChanges(oldChat, chat, new Dictionary<string, bool>() { { "lookForDeletedKeys", true } });
                             AAA___ delete  chat . metadata  ___AAA ;
                             AAA___ // remove group metadata as that may have changed; TODO, write better mechanism for this
                             delete  changes . messages  ___AAA ;
                             updatedChats.push((__spread__: changes, jid: chat.jid));
                         }
                     }
-                }
-
-                );
+                });
                 this.chats = chats;
                 this.lastChatsReceived = new Date();
                 updatedChats.Count > 0 && this.emit("chats-update", updatedChats);
-                this.emit("chats-received", new Array<dynamic>()
-                {{"hasNewChats", hasNewChats}});
-            }
-
-            );
-            var lastMessages = new Hashtable<String, dynamic>();
-            Hashtable<String, (bool requiresOverlap, bool didOverlap)> overlaps = new Hashtable<String, (bool requiresOverlap, bool didOverlap)>();
+                this.emit("chats-received", new List<dynamic>() { { "hasNewChats", hasNewChats } });
+            });
+            var lastMessages = new Dictionary<string, dynamic>();
+            Dictionary<string, (bool requiresOverlap, bool didOverlap)> overlaps = new Dictionary<string, (bool requiresOverlap, bool didOverlap)>();
             var onLastBatchOfDataReceived = () =>
             {
                 var chatsWithMissingMessages = Object.keys(overlaps).map((jid) =>
@@ -132,30 +116,25 @@ namespace Bailey
                         {
                             var message = chat.messages.get(lastMessages[jid]);
                             var remainingMessages = chat.messages.paginatedByValue(message, this.maxCachedMessages, undefined, "after");
-                            chat.messages = newMessagesDB(new dynamic{message, AAA___...remainingMessages ___AAA });
+                            chat.messages = newMessagesDB(new dynamic { message, AAA___.. . remainingMessages  ___AAA});
                             return (jid: jid, count: chat.messages.length);
                         }
                     }
-                }
-
-                ).filter(Boolean);
-                this.emit("initial-data-received", new Array<dynamic>()
-                {{"chatsWithMissingMessages", chatsWithMissingMessages}});
-            }
-
-            ;
+                }).filter(Boolean);
+                this.emit("initial-data-received", new List<dynamic>() { { "chatsWithMissingMessages", chatsWithMissingMessages } });
+            };
             var messagesUpdate = (json, style) =>
             {
                 this.messagesDebounceTimeout.start(undefined, onLastBatchOfDataReceived);
                 if (style == "last")
                 {
-                    overlaps = new Hashtable<String, (bool requiresOverlap, bool didOverlap)>();
+                    overlaps = new Dictionary<string, (bool requiresOverlap, bool didOverlap)>();
                 }
 
                 var messages = json[2].AsArray<WANode>();
                 if (messages)
                 {
-                    Hashtable<String, KeyedDB<WAMessage, String>> updates = new Hashtable<String, KeyedDB<WAMessage, String>>();
+                    Dictionary<string, KeyedDB<WAMessage, string>> updates = new Dictionary<string, KeyedDB<WAMessage, string>>();
                     messages.reverse().forEach(([,, message]) =>
                     {
                         var jid = message.key.remoteJid;
@@ -173,8 +152,13 @@ namespace Bailey
                             }
                             else if (style == "last")
                             {
-                                overlaps[jid] = new(bool requiresOverlap, bool didOverlap)()
-                                {{"requiresOverlap", chat.messages.length > 0}};
+                                overlaps[jid] = new (bool requiresOverlap, bool didOverlap)()
+                                {
+                                    {
+                                        "requiresOverlap",
+                                        chat.messages.length > 0
+                                    }
+                                };
                                 var lm = chat.messages.all()[chat.messages.length - 1];
                                 var prevEpoch = (lm && lm["epoch"]) || 0;
                                 message["epoch"] = prevEpoch + 1000;
@@ -182,8 +166,7 @@ namespace Bailey
 
                             if (chat.messages.upsert(message).length > 0)
                             {
-                                overlaps[jid] = (__spread__: (overlaps[jid] || new Hashtable<String, bool>()
-                                {{"requiresOverlap", true}}), didOverlap: true);
+                                overlaps[jid] = (__spread__: (overlaps[jid] || new Dictionary<string, bool>() { { "requiresOverlap", true } }), didOverlap: true);
                             }
 
                             updates[jid] = updates[jid] || newMessagesDB();
@@ -191,19 +174,14 @@ namespace Bailey
                             lastMessages[jid] = mKeyID;
                         }
                         else if (!chat)
-                            this.logger.debug(new Hashtable<String, dynamic>()
-                            {{"jid", jid}}, $"chat not found");
-                    }
-
-                    );
+                            this.logger.debug(new Dictionary<string, dynamic>() { { "jid", jid } }, $"chat not found");
+                    });
                     if (Object.keys(updates).length > 0)
                     {
                         this.emit("chats-update", Object.keys(updates).map((jid) => ((jid: jid, messages: updates[jid]))));
                     }
                 }
-            }
-
-            ;
+            };
             this.on("CB:action,add:last", (json) => messagesUpdate(json, "last"));
             this.on("CB:action,add:before", (json) => messagesUpdate(json, "previous"));
             this.on("CB:action,add:unread", (json) => messagesUpdate(json, "previous"));
@@ -212,7 +190,7 @@ namespace Bailey
                 if (json[1].duplicate || !json[2])
                     return;
                 var contacts = this.contacts;
-                Array<WAContact> updatedContacts = new Array<WAContact>();
+                List<WAContact> updatedContacts = new List<WAContact>();
                 json[2].forEach(([type, contact]) =>
                 {
                     if (!contact)
@@ -221,8 +199,7 @@ namespace Bailey
                     var presentContact = contacts[contact.jid];
                     if (presentContact)
                     {
-                        var changes = shallowChanges(presentContact, contact, new Hashtable<String, bool>()
-                        {{"lookForDeletedKeys", false}});
+                        var changes = shallowChanges(presentContact, contact, new Dictionary<string, bool>() { { "lookForDeletedKeys", false } });
                         if (changes && Object.keys(changes).length > 0)
                         {
                             updatedContacts.push((__spread__: changes, jid: contact.jid));
@@ -231,10 +208,8 @@ namespace Bailey
                     else
                         updatedContacts.push(contact);
                     contacts[contact.jid] = new WAContact();
-                }
-
-                );
-                var updatedChats = new Array<dynamic>();
+                });
+                var updatedChats = new List<dynamic>();
                 this.chats.all().forEach((c) =>
                 {
                     var contact = contacts[c.jid];
@@ -246,24 +221,17 @@ namespace Bailey
                             updatedChats.push((jid: c.jid, name: name));
                         }
                     }
-                }
-
-                );
+                });
                 updatedChats.Count > 0 && this.emit("chats-update", updatedChats);
                 this.logger.info($"received {json[2].length} contacts");
                 this.contacts = contacts;
-                this.emit("contacts-received", new Array<dynamic>()
-                {{"updatedContacts", updatedContacts}});
-            }
-
-            );
+                this.emit("contacts-received", new List<dynamic>() { { "updatedContacts", updatedContacts } });
+            });
             this.on("CB:action,add:relay,message", (json) =>
             {
                 var message = json[2][0][2] as WAMessage;
                 this.chatAddMessageAppropriate(message);
-            }
-
-            );
+            });
             this.on("CB:Chat,cmd:action", (json) =>
             {
                 var data = json[1].data;
@@ -283,21 +251,16 @@ namespace Bailey
                             emitGroupUpdate((__spread__: data[2], descOwner: data[1]));
                             break;
                         default:
-                            this.logger.debug(new Hashtable<String, bool>()
-                            {{"unhandled", true}}, json);
+                            this.logger.debug(new Dictionary<string, bool>() { { "unhandled", true } }, json);
                             break;
                     }
                 }
-            }
-
-            );
+            });
             this.on("CB:Presence", (json) =>
             {
                 var chatUpdate = this.applyingPresenceUpdate(json[1]);
                 chatUpdate && this.emit("chat-update", chatUpdate);
-            }
-
-            );
+            });
             this.on("CB:action,add:update,message", (json) =>
             {
                 WAMessage message = json[2][0][2];
@@ -312,26 +275,30 @@ namespace Bailey
                     if (chat.messages.upsert(message).length)
                     {
                         Partial<WAChat> chatUpdate = new Partial<WAChat>()
-                        {{"jid", jid}, {"messages", newMessagesDB(new Array<WAMessage>{message})}};
+                        {
+                            {
+                                "jid",
+                                jid
+                            },
+                            {
+                                "messages",
+                                newMessagesDB(new List<WAMessage> { message })
+                            }
+                        };
                         this.emit("chat-update", chatUpdate);
                     }
                 }
                 else
                 {
-                    this.logger.debug(new Hashtable<String, bool>()
-                    {{"unhandled", true}}, "received message update for non-present message from " + jid);
+                    this.logger.debug(new Dictionary<string, bool>() { { "unhandled", true } }, "received message update for non-present message from " + jid);
                 }
-            }
-
-            );
+            });
             var onMessageStatusUpdate = (json) =>
             {
                 json = json[2][0][1];
                 var MAP = (read: WA_MESSAGE_STATUS_TYPE.READ, message: WA_MESSAGE_STATUS_TYPE.DELIVERY_ACK, error: WA_MESSAGE_STATUS_TYPE.ERROR);
                 this.onMessageStatusUpdate(whatsappID(json.jid), (id: json.index, fromMe: json.owner == "true"), MAP[json.type]);
-            }
-
-            ;
+            };
             this.on("CB:action,add:relay,received", onMessageStatusUpdate);
             this.on("CB:action,,received", onMessageStatusUpdate);
             this.on("CB:Msg,cmd:ack", (json) => (this.onMessageStatusUpdate(whatsappID(json[1].to), (id: json[1].id, fromMe: true), +json[1].ack + 1)));
@@ -348,13 +315,10 @@ namespace Bailey
                     if (chat)
                     {
                         chat.name = user.name || user.notify || chat.name;
-                        this.emit("chat-update", new Array<dynamic>()
-                        {{"jid", chat.jid}, {"name", chat.name}});
+                        this.emit("chat-update", new List<dynamic>() { { "jid", chat.jid }, { "name", chat.name } });
                     }
                 }
-            }
-
-            );
+            });
             this.on("CB:action,,chat", (json) =>
             {
                 json = json[2][0];
@@ -368,77 +332,57 @@ namespace Bailey
                     chat["delete"] = "true";
                     this.chats.deleteById(chat.jid);
                     return "delete";
-                }
-
-                , clear: () =>
+                }, clear: () =>
                 {
                     if (!json[2])
                         chat.messages.clear();
                     else
                         json[2].forEach((item) => chat.messages.filter((m) => m.key.id != item[1].index));
                     return "clear";
-                }
-
-                , archive: () =>
+                }, archive: () =>
                 {
                     this.chats.update(chat.jid, (chat) => chat.archive = "true");
                     return "archive";
-                }
-
-                , unarchive: () =>
+                }, unarchive: () =>
                 {
                     AAA___ delete  chat . archive  ___AAA ;
                     return "archive";
-                }
-
-                , pin: () =>
+                }, pin: () =>
                 {
                     chat.pin = json[1].pin;
                     return "pin";
-                }
-
-                );
+                });
                 var func = FUNCTIONS[updateType];
                 if (func)
                 {
                     var property = func();
-                    this.emit("chat-update", new Array<dynamic>()
-                    {{"jid", jid}, {"[property]", chat[property] || "false"}});
+                    this.emit("chat-update", new List<dynamic>() { { "jid", jid }, { "[property]", chat[property] || "false" } });
                 }
-            }
-
-            );
+            });
             this.on("CB:Cmd,type:picture", (json) =>
             {
                 json = json[1];
                 var jid = whatsappID(json.jid);
-                var imgUrl = await this.getProfilePicture(jid).catch(() => "");
+                var imgUrl = await this.getProfilePicture(jid).@catch(() => "");
                 var contact = this.contacts[jid];
                 if (contact)
                 {
                     contact.imgUrl = imgUrl;
-                    this.emit("contact-update", new Array<dynamic>()
-                    {{"jid", jid}, {"imgUrl", imgUrl}});
+                    this.emit("contact-update", new List<dynamic>() { { "jid", jid }, { "imgUrl", imgUrl } });
                 }
 
                 var chat = this.chats.get(jid);
                 if (chat)
                 {
                     chat.imgUrl = imgUrl;
-                    this.emit("chat-update", new Array<dynamic>()
-                    {{"jid", jid}, {"imgUrl", imgUrl}});
+                    this.emit("chat-update", new List<dynamic>() { { "jid", jid }, { "imgUrl", imgUrl } });
                 }
-            }
-
-            );
+            });
             this.on("CB:Status,status", (json) =>
             {
                 var jid = whatsappID(json[1].id);
-                this.emit("contact-update", new Array<dynamic>()
-                {{"jid", jid}, {"status", json[1].status}});
-            }
-
-            );
+                this.emit("contact-update", new List<dynamic>() { { "jid", jid }, { "status", json[1].status } });
+            });
             this.on("CB:Conn,pushname", (json) =>
             {
                 if (this.user)
@@ -447,13 +391,10 @@ namespace Bailey
                     if (this.user.name != name)
                     {
                         this.user.name = name;
-                        this.emit("contact-update", new Array<dynamic>()
-                        {{"jid", this.user.jid}, {"name", name}});
+                        this.emit("contact-update", new List<dynamic>() { { "jid", this.user.jid }, { "name", name } });
                     }
                 }
-            }
-
-            );
+            });
             this.on("CB:action,,read", (json) =>
             {
                 var update = json[2][0][1];
@@ -465,26 +406,20 @@ namespace Bailey
                         chat.count = -1;
                     else
                         chat.count = 0;
-                    this.emit("chat-update", new Array<dynamic>()
-                    {{"jid", chat.jid}, {"count", chat.count}});
+                    this.emit("chat-update", new List<dynamic>() { { "jid", chat.jid }, { "count", chat.count } });
                 }
                 else
                 {
                     this.logger.warn("recieved read update for unknown chat " + jid);
                 }
-            }
-
-            );
+            });
             this.on("qr", (qr) =>
             {
                 if (this.connectOptions.logQR)
                 {
-                    QR.generate(qr, new Hashtable<String, bool>()
-                    {{"small", true}});
+                    QR.generate(qr, new Dictionary<string, bool>() { { "small", true } });
                 }
-            }
-
-            );
+            });
             this.on("CB:Blocklist", (json) =>
             {
                 json = json[1];
@@ -493,26 +428,32 @@ namespace Bailey
                 var added = this.blocklist.filter((id) => !initial.includes(id));
                 var removed = initial.filter((id) => !this.blocklist.includes(id));
                 BlocklistUpdate update = new BlocklistUpdate()
-                {{"added", added}, {"removed", removed}};
+                {
+                    {
+                        "added",
+                        added
+                    },
+                    {
+                        "removed",
+                        removed
+                    }
+                };
                 this.emit("blocklist-update", update);
-            }
-
-            );
+            });
         }
 
         protected void sendChatsQuery(double epoch)
         {
-            return this.sendBinary(new WANode{"query", (type: "chat", epoch: epoch.toString()), null}, new WATag{WAMetric.queryChat, WAFlag.ignore});
+            return this.sendBinary(new WANode { "query", (type: "chat", epoch: epoch.toString()), null }, new WATag { WAMetric.queryChat, WAFlag.ignore });
         }
 
         /// <summary>
         /// Get the URL to download the profile picture of a person/group
         /// </summary>
-        async public void getProfilePicture(String jid)
+        async public void getProfilePicture(string jid)
         {
-            var response = await this.query(new WAQuery()
-            {{"json", new Array<String>{"query", "ProfilePicThumb", jid || this.user.jid}}, {"expect200", true}, {"requiresPhoneConnection", false}});
-            return response.eurl as String;
+            var response = await this.query(new WAQuery() { { "json", new List<string> { "query", "ProfilePicThumb", jid || this.user.jid } }, { "expect200", true }, { "requiresPhoneConnection", false } });
+            return response.eurl as string;
         }
 
         protected void applyingPresenceUpdate(PresenceUpdate update)
@@ -522,7 +463,7 @@ namespace Bailey
             var chat = this.chats.get(chatId);
             if (chat && jid.endsWith("@s.whatsapp.net"))
             {
-                chat.presences = chat.presences || new Hashtable<String, dynamic>();
+                chat.presences = chat.presences || new Dictionary<string, dynamic>();
                 var presence = new AAA___ ___AAA () as WAPresenceData;
                 if (update.t)
                     presence.lastSeen = +update.t;
@@ -544,22 +485,38 @@ namespace Bailey
                 }
 
                 chat.presences[jid] = presence;
-                return (jid: chatId, presences: new
-                {
-                [jid] = presence
-                }
-
-                ) as Partial<WAChat>;
+                return (jid: chatId, presences: new Dictionary<string, WAPresenceData>() { { "[jid]", presence } }) as Partial<WAChat>;
             }
         }
 
         /// <summary>
         /// inserts an empty chat into the DB
         /// </summary>
-        protected void chatAdd(String jid, String name = null, Partial<WAChat> properties = new Partial<WAChat>())
+        protected void chatAdd(string jid, string name = null, Partial<WAChat> properties = new Partial<WAChat>())
         {
             WAChat chat = new WAChat()
-            {{"jid", jid}, {"name", name}, {"t", unixTimestampSeconds()}, {"messages", newMessagesDB()}, {"count", 0}};
+            {
+                {
+                    "jid",
+                    jid
+                },
+                {
+                    "name",
+                    name
+                },
+                {
+                    "t",
+                    unixTimestampSeconds()
+                },
+                {
+                    "messages",
+                    newMessagesDB()
+                },
+                {
+                    "count",
+                    0
+                }
+            };
             if (this.chats.insertIfAbsent(chat).length)
             {
                 this.emit("chat-new", chat);
@@ -567,7 +524,7 @@ namespace Bailey
             }
         }
 
-        protected void onMessageStatusUpdate(String jid, (String id, bool fromMe)key, WA_MESSAGE_STATUS_TYPE status)
+        protected void onMessageStatusUpdate(string jid, (string id, bool fromMe) key, WA_MESSAGE_STATUS_TYPE status)
         {
             var chat = this.chats.get(whatsappID(jid));
             var msg = chat.messages.get(GET_MESSAGE_ID(key));
@@ -578,14 +535,12 @@ namespace Bailey
                     if (status > msg.status || status == WA_MESSAGE_STATUS_TYPE.ERROR)
                     {
                         msg.status = status;
-                        this.emit("chat-update", new Array<dynamic>()
-                        {{"jid", chat.jid}, {"messages", newMessagesDB(new Array<dynamic>{msg})}});
+                        this.emit("chat-update", new List<dynamic>() { { "jid", chat.jid }, { "messages", newMessagesDB(new List<dynamic> { msg }) } });
                     }
                 }
                 else
                 {
-                    this.logger.warn(new Hashtable<String, WA_MESSAGE_STATUS_TYPE>()
-                    {{"update", status}}, "received unknown message status update");
+                    this.logger.warn(new Dictionary<string, WA_MESSAGE_STATUS_TYPE>() { { "update", status } }, "received unknown message status update");
                 }
             }
             else
@@ -594,12 +549,17 @@ namespace Bailey
             }
         }
 
-        protected void contactAddOrGet(String jid)
+        protected void contactAddOrGet(string jid)
         {
             jid = whatsappID(jid);
             if (!this.contacts[jid])
                 this.contacts[jid] = new WAContact()
-                {{"jid", jid}};
+                {
+                    {
+                        "jid",
+                        jid
+                    }
+                };
             return this.contacts[jid];
         }
 
@@ -612,9 +572,8 @@ namespace Bailey
             if (!chat)
                 throw new Error($"chat '{jid}' not found");
             return chat;
-        }
+        };
 
-        ;
         /// <summary>
         /// Adds the given message to the appropriate chat, if the chat doesn't exist, it is created
         /// </summary>
@@ -628,7 +587,12 @@ namespace Bailey
         protected void chatAddMessage(WAMessage message, WAChat chat)
         {
             WAChatUpdate chatUpdate = new WAChatUpdate()
-            {{"jid", chat.jid}};
+            {
+                {
+                    "jid",
+                    chat.jid
+                }
+            };
             if (!message.key.fromMe && message.message)
             {
                 chat.count += 1;
@@ -637,8 +601,7 @@ namespace Bailey
                 var contact = chat.presences && chat.presences[participant];
                 if (contact.lastKnownPresence == Presence.composing)
                 {
-                    var update = this.applyingPresenceUpdate(new PresenceUpdate()
-                    {{"id", chat.jid}, {"participant", participant}, {"type", Presence.available}});
+                    var update = this.applyingPresenceUpdate(new PresenceUpdate() { { "id", chat.jid }, { "participant", participant }, { "type", Presence.available } });
                     update && Object.assign(chatUpdate, update);
                 }
             }
@@ -673,7 +636,7 @@ namespace Bailey
                             this.logger.info("deleting message: " + protocolMessage.key.id + " in chat: " + protocolMessage.key.remoteJid);
                             found.messageStubType = WA_MESSAGE_STUB_TYPE.REVOKE;
                             AAA___ delete  found . message  ___AAA ;
-                            chatUpdate.messages = newMessagesDB(new Array<dynamic>{found});
+                            chatUpdate.messages = newMessagesDB(new List<dynamic> { found });
                         }
 
                         break;
@@ -702,17 +665,15 @@ namespace Bailey
                             AAA___ delete  chat . archive  ___AAA ;
                             chatUpdate.archive = "false";
                         }
-                    }
-
-                    );
+                    });
                 }
 
                 chatUpdate.hasNewMessage = true;
-                chatUpdate.messages = newMessagesDB(new Array<WAMessage>{message});
+                chatUpdate.messages = newMessagesDB(new List<WAMessage> { message });
                 if (message.messageStubType)
                 {
                     var jid = chat.jid;
-                    Array<String> participants;
+                    List<string> participants;
                     var emitParticipantsUpdate = (action) => (this.emitParticipantsUpdate(jid, participants, action));
                     var emitGroupUpdate = (update) => this.emitGroupUpdate(jid, update);
                     switch (message.messageStubType)
@@ -757,13 +718,11 @@ namespace Bailey
                             break;
                         case WA_MESSAGE_STUB_TYPE.GROUP_CHANGE_ANNOUNCE:
                             var announce = message.messageStubParameters[0] == "on" ? "true" : "false";
-                            emitGroupUpdate(new Hashtable<String, dynamic>()
-                            {{"announce", announce}});
+                            emitGroupUpdate(new Dictionary<string, dynamic>() { { "announce", announce } });
                             break;
                         case WA_MESSAGE_STUB_TYPE.GROUP_CHANGE_RESTRICT:
                             var restrict = message.messageStubParameters[0] == "on" ? "true" : "false";
-                            emitGroupUpdate(new Hashtable<String, dynamic>()
-                            {{"restrict", restrict}});
+                            emitGroupUpdate(new Dictionary<string, dynamic>() { { "restrict", restrict } });
                             break;
                         case WA_MESSAGE_STUB_TYPE.GROUP_CHANGE_SUBJECT:
                         case WA_MESSAGE_STUB_TYPE.GROUP_CREATE:
@@ -800,114 +759,107 @@ namespace Bailey
                         {
                             if (participants.includes(p.jid))
                                 p.isAdmin = isAdmin;
-                        }
-
-                        );
+                        });
                         break;
                 }
             }
 
-            this.emit("group-participants-update", new Array<dynamic>()
-            {{"jid", jid}, {"participants", participants}, {"action", action}});
-        }
-
-        ;
+            this.emit("group-participants-update", new List<dynamic>() { { "jid", jid }, { "participants", participants }, { "action", action } });
+        };
         protected dynamic emitGroupUpdate = (jid, update) =>
         {
             var chat = this.chats.get(jid);
             if (chat && chat.metadata)
                 Object.assign(chat.metadata, update);
-            this.emit("group-update", new Array<dynamic>()
-            {{"jid", jid}});
-        }
-
-        ;
+            this.emit("group-update", new List<dynamic>() { { "jid", jid } });
+        };
         protected dynamic chatUpdateTime = (chat, stamp) => this.chats.update(chat.jid, (c) => c.t = stamp);
+
         /// <summary>
         /// sets the profile picture of a chat
         /// </summary>
         protected async void setProfilePicture(WAChat chat)
         {
-            chat.imgUrl = await this.getProfilePicture(chat.jid).catch((err) => "");
+            chat.imgUrl = await this.getProfilePicture(chat.jid).@catch((err) => "");
         }
 
         /// <summary>
         /// when the connection has opened successfully
         /// </summary>
-        public  this  on(dynamic event, AAA___ (result: WAOpenResult) => void ___AAA listener);
+        public  this  on(string /*open*/ @event, Action<WAOpenResult> listener);
         /// <summary>
         /// when the connection is opening
         /// </summary>
-        public  this  on(dynamic event, AAA___ () => void ___AAA listener);
+        public  this  on(string /*connecting*/ @event, Action<> listener);
         /// <summary>
         /// when the connection has closed
         /// </summary>
-        public  this  on(dynamic event, AAA___ (err: {reason?: DisconnectReason | string, isReconnecting: boolean}) => void ___AAA listener);
+        public  this  on(string /*close*/ @event, Action<(OrType<DisconnectReason, string> reason, bool isReconnecting)> listener);
         /// <summary>
         /// when the socket is closed
         /// </summary>
-        public  this  on(dynamic event, AAA___ (err: {reason?: DisconnectReason | string}) => void ___AAA listener);
+        public  this  on(string /*ws-close*/ @event, Action<Dictionary<string, OrType<DisconnectReason, string>>> listener);
         /// <summary>
         /// when a new QR is generated, ready for scanning
         /// </summary>
-        public  this  on(dynamic event, AAA___ (qr: string) => void ___AAA listener);
+        public  this  on(string /*qr*/ @event, Action<string> listener);
         /// <summary>
         /// when the connection to the phone changes
         /// </summary>
-        public  this  on(dynamic event, AAA___ (state: {connected: boolean}) => void ___AAA listener);
+        public  this  on(string /*connection-phone-change*/ @event, Action<Dictionary<string, bool>> listener);
         /// <summary>
         /// when a contact is updated
         /// </summary>
-        public  this  on(dynamic event, AAA___ (update: WAContactUpdate) => void ___AAA listener);
+        public  this  on(string /*contact-update*/ @event, Action<WAContactUpdate> listener);
         /// <summary>
         /// when a new chat is added
         /// </summary>
-        public  this  on(dynamic event, AAA___ (chat: WAChat) => void ___AAA listener);
+        public  this  on(string /*chat-new*/ @event, Action<WAChat> listener);
         /// <summary>
         /// when contacts are sent by WA
         /// </summary>
-        public  this  on(dynamic event, AAA___ (u: { updatedContacts: Partial<WAContact>[] }) => void ___AAA listener);
+        public  this  on(string /*contacts-received*/ @event, Action<Dictionary<string, List<Partial<WAContact>>>> listener);
         /// <summary>
         /// when chats are sent by WA, and when all messages are received
         /// </summary>
-        public  this  on(dynamic event, AAA___ (update: {hasNewChats?: boolean}) => void ___AAA listener);
+        public  this  on(string /*chats-received*/ @event, Action<Dictionary<string, bool>> listener);
         /// <summary>
         /// when all initial messages are received from WA
         /// </summary>
-        public  this  on(dynamic event, AAA___ (update: {chatsWithMissingMessages: { jid: string, count: number }[] }) => void ___AAA listener);
+        public  this  on(string /*initial-data-received*/ @event, Action<Dictionary<string, List<(string jid, double count)>>> listener);
         /// <summary>
         /// when multiple chats are updated (new message, updated message, deleted, pinned, etc)
         /// </summary>
-        public  this  on(dynamic event, AAA___ (chats: WAChatUpdate[]) => void ___AAA listener);
+        public  this  on(string /*chats-update*/ @event, Action<List<WAChatUpdate>> listener);
         /// <summary>
         /// when a chat is updated (new message, updated message, read message, deleted, pinned, presence updated etc)
         /// </summary>
-        public  this  on(dynamic event, AAA___ (chat: WAChatUpdate) => void ___AAA listener);
+        public  this  on(string /*chat-update*/ @event, Action<WAChatUpdate> listener);
         /// <summary>
         /// when participants are added to a group
         /// </summary>
-        public  this  on(dynamic event, AAA___ (update: {jid: string, participants: string[], actor?: string, action: WAParticipantAction}) => void ___AAA listener);
+        public  this  on(string /*group-participants-update*/ @event, Action<(string jid, List<string> participants, string actor, WAParticipantAction action)> listener);
         /// <summary>
         /// when the group is updated
         /// </summary>
-        public  this  on(dynamic event, AAA___ (update: Partial<WAGroupMetadata> & {jid: string, actor?: string}) => void ___AAA listener);
+        public  this  on(string /*group-update*/ @event, Action<AndType<Partial<WAGroupMetadata>, (string jid, string actor)>> listener);
         /// <summary>
         /// when WA sends back a pong
         /// </summary>
-        public  this  on(dynamic event, AAA___ () => void ___AAA listener);
+        public  this  on(string /*received-pong*/ @event, Action<> listener);
         /// <summary>
         /// when a user is blocked or unblockd
         /// </summary>
-        public  this  on(dynamic event, AAA___ (update: BlocklistUpdate) => void ___AAA listener);
-        public  this  on(dynamic event, AAA___ (json: any) => void ___AAA listener);
-        public void on(dynamic event, AAA___ (...args: any[]) => void ___AAA listener)
+        public  this  on(string /*blocklist-update*/ @event, Action<BlocklistUpdate> listener);
+        public  this  on(OrType<BaileysEvent, string> @event, Action<dynamic> listener);
+        public void on(OrType<BaileysEvent, string> @event, Action<dynamic[]> listener)
         {
-            return base.on(event, listener);
+            return base.on(@event, listener);
         }
 
-        public void emit(dynamic event, params dynamic[] args)
+        public void emit(OrType<BaileysEvent, string> @event, params dynamic[] args)
         {
-            return base.emit(event, args);
+            return base.emit(@event, args);
         }
     }
 }

@@ -8,31 +8,15 @@ namespace Bailey
 {
     interface BrowserMessagesInfo
     {
-        (String encKey, String macKey)bundle
-        {
-            get;
-            set;
-        }
+        (string encKey, string macKey) bundle { get; set; }
 
-        String harFilePath
-        {
-            get;
-            set;
-        }
+        string harFilePath { get; set; }
     }
 
     interface WSMessage
     {
-        dynamic type
-        {
-            get;
-            set;
-        }
+        string /*send*/ type { get; set; }
 
-        String data
-        {
-            get;
-            set;
-        }
+        string data { get; set; }
     }
 }

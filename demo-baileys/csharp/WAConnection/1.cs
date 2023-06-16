@@ -13,12 +13,19 @@ namespace Bailey
         /// <summary>
         /// Authenticate the connection
         /// </summary>
-        protected async void authenticate(String reconnect = null)
+        protected async void authenticate(string reconnect = null)
         {
             if (!this.authInfo.clientID)
             {
-                this.authInfo = new Hashtable<String, dynamic>()
-                {{"clientID", Utils.generateClientID()}} as dynamic;
+                this.authInfo = new Dictionary<string, dynamic>()
+                {
+                    {
+                        "clientID",
+                        Utils.generateClientID()
+                    }
+                }
+
+                as dynamic;
             }
 
             var canLogin = this.canLogin();
@@ -26,23 +33,27 @@ namespace Bailey
             this.connectionDebounceTimeout.start();
             var initQuery = (() =>
             {
-                var {ref, ttl} = await this.query(new WAQuery()
-                {{"json", new Array<String>{"admin", "init", this.version, this.browserDescription, this.authInfo.clientID, true}}, {"expect200", true}, {"waitForOpen", false}, {"longTag", true}, {"requiresPhoneConnection", false}, {"startDebouncedTimeout", true}}) as WAInitResponse;
+                var {ref, ttl} = await this.query(new WAQuery() { { "json", new List<string> { "admin", "init", this.version, this.browserDescription, this.authInfo.clientID, true } }, { "expect200", true }, { "waitForOpen", false }, { "longTag", true }, { "requiresPhoneConnection", false }, { "startDebouncedTimeout", true } }) as WAInitResponse;
                 if (!canLogin)
                 {
                     this.connectionDebounceTimeout.cancel();
                     this.generateKeysForAuth(@ref, ttl);
                 }
-            }
-
-            )();
-            String loginTag;
+            })();
+            string loginTag;
             if (canLogin)
             {
-                var json = new Array<String>{"admin", "login", this.authInfo.clientToken, this.authInfo.serverToken, this.authInfo.clientID};
+                var json = new List<string>
+                {
+                    "admin",
+                    "login",
+                    this.authInfo.clientToken,
+                    this.authInfo.serverToken,
+                    this.authInfo.clientID
+                };
                 loginTag = this.generateMessageTag(true);
                 if (reconnect)
-                    json.push(new Array<String>{"reconnect", reconnect.replace("@s.whatsapp.net", "@c.us")}.ToArray());
+                    json.push(new List<string> { "reconnect", reconnect.replace("@s.whatsapp.net", "@c.us") }.ToArray());
                 else
                     json.push("takeover");
                 var sendLoginReq = () =>
@@ -62,25 +73,18 @@ namespace Bailey
                     this.logger.debug("sending login request");
                     this.sendJSON(json, loginTag);
                     this.initTimeout = setTimeout(sendLoginReq, 10000);
-                }
-
-                ;
+                };
                 sendLoginReq();
             }
 
             await initQuery;
-            var response = await Promise.race(new Array<void>{this.waitForMessage("s1", false, undefined), loginTag && this.waitForMessage(loginTag, false, undefined)}.filter(Boolean));
+            var response = await Promise.race(new List<> { this.waitForMessage("s1", false, undefined), loginTag && this.waitForMessage(loginTag, false, undefined) }.filter(Boolean));
             this.connectionDebounceTimeout.start();
             this.initTimeout && clearTimeout(this.initTimeout);
             this.initTimeout = null;
             if (response.status && response.status != 200)
             {
-                throw new BaileysError($"Unexpected error in login", new
-                {
-                response = response, status = response.status
-                }
-
-                );
+                throw new BaileysError($"Unexpected error in login", (response: response, status: response.status));
             }
 
             if (response[1].challenge)
@@ -94,7 +98,7 @@ namespace Bailey
             {
                 result.isNewUser = true;
                 this.chats.clear();
-                this.contacts = new Hashtable<String, WAContact>();
+                this.contacts = new Dictionary<string, WAContact>();
             }
 
             this.user = result.user;
@@ -110,8 +114,7 @@ namespace Bailey
         /// </returns>
         async public void requestNewQRCodeRef()
         {
-            var response = await this.query(new WAQuery()
-            {{"json", new Array<String>{"admin", "Conn", "reref"}}, {"expect200", true}, {"waitForOpen", false}, {"longTag", true}, {"requiresPhoneConnection", false}});
+            var response = await this.query(new WAQuery() { { "json", new List<string> { "admin", "Conn", "reref" } }, { "expect200", true }, { "waitForOpen", false }, { "longTag", true }, { "requiresPhoneConnection", false } });
             return response as WAInitResponse;
         }
 
@@ -123,24 +126,29 @@ namespace Bailey
         /// </param>
         private void validateNewConnection(dynamic json)
         {
-            var onValidationSuccess = () => ((user: new
-            {
-            jid = Utils.whatsappID(json.wid), name = json.pushname, phone = json.phone, imgUrl = null
-            }
-
-            , auth: this.authInfo)) as WAOpenResult;
+            var onValidationSuccess = () => ((user: (jid: Utils.whatsappID(json.wid), name: json.pushname, phone: json.phone, imgUrl: null), auth: this.authInfo)) as WAOpenResult;
             if (!json.secret)
             {
                 if (json.clientToken && json.clientToken != this.authInfo.clientToken)
                 {
                     this.authInfo = new AuthenticationCredentials()
-                    {{"clientToken", json.clientToken}};
+                    {
+                        {
+                            "clientToken",
+                            json.clientToken
+                        }
+                    };
                 }
 
                 if (json.serverToken && json.serverToken != this.authInfo.serverToken)
                 {
                     this.authInfo = new AuthenticationCredentials()
-                    {{"serverToken", json.serverToken}};
+                    {
+                        {
+                            "serverToken",
+                            json.serverToken
+                        }
+                    };
                 }
 
                 return onValidationSuccess();
@@ -155,17 +163,38 @@ namespace Bailey
             var sharedKey = Curve.sharedKey(this.curveKeys.@private, secret.slice(0, 32));
             var expandedKey = Utils.hkdf(sharedKey as Buffer, 80);
             var hmacValidationKey = expandedKey.slice(32, 64);
-            var hmacValidationMessage = Buffer.concat(new Array<dynamic>{secret.slice(0, 32), secret.slice(64, secret.length)});
+            var hmacValidationMessage = Buffer.concat(new dynamic { secret.slice(0, 32), secret.slice(64, secret.length) });
             var hmac = Utils.hmacSign(hmacValidationMessage, hmacValidationKey);
             if (!hmac.equals(secret.slice(32, 64)))
             {
                 throw new BaileysError("HMAC validation failed", json);
             }
 
-            var encryptedAESKeys = Buffer.concat(new Array<dynamic>{expandedKey.slice(64, expandedKey.length), secret.slice(64, secret.length)});
+            var encryptedAESKeys = Buffer.concat(new dynamic { expandedKey.slice(64, expandedKey.length), secret.slice(64, secret.length) });
             var decryptedKeys = Utils.aesDecrypt(encryptedAESKeys, expandedKey.slice(0, 32));
             this.authInfo = new AuthenticationCredentials()
-            {{"encKey", decryptedKeys.slice(0, 32)}, {"macKey", decryptedKeys.slice(32, 64)}, {"clientToken", json.clientToken}, {"serverToken", json.serverToken}, {"clientID", this.authInfo.clientID}};
+            {
+                {
+                    "encKey",
+                    decryptedKeys.slice(0, 32)
+                },
+                {
+                    "macKey",
+                    decryptedKeys.slice(32, 64)
+                },
+                {
+                    "clientToken",
+                    json.clientToken
+                },
+                {
+                    "serverToken",
+                    json.serverToken
+                },
+                {
+                    "clientID",
+                    this.authInfo.clientID
+                }
+            };
             return onValidationSuccess();
         }
 
@@ -173,26 +202,37 @@ namespace Bailey
         /// When logging back in (restoring a previously closed session), WhatsApp may challenge one to check if one still has the encryption keys
         /// WhatsApp does that by asking for us to sign a string it sends with our macKey
         /// </summary>
-        protected void respondToChallenge(String challenge)
+        protected void respondToChallenge(string challenge)
         {
             var bytes = Buffer.from(challenge, "base64");
             var signed = Utils.hmacSign(bytes, this.authInfo.macKey).toString("base64");
-            var json = new Array<String>{"admin", "challenge", signed, this.authInfo.serverToken, this.authInfo.clientID};
+            var json = new List<string>
+            {
+                "admin",
+                "challenge",
+                signed,
+                this.authInfo.serverToken,
+                this.authInfo.clientID
+            };
             this.logger.info("resolving login challenge");
-            return this.query(new WAQuery()
-            {{"json", json}, {"expect200", true}, {"waitForOpen", false}, {"startDebouncedTimeout", true}});
+            return this.query(new WAQuery() { { "json", json }, { "expect200", true }, { "waitForOpen", false }, { "startDebouncedTimeout", true } });
         }
 
         /// <summary>
         /// When starting a new session, generate a QR code by generating a private/public key pair & the keys the server sends
         /// </summary>
-        protected void generateKeysForAuth(String @ref, double ttl = 0)
+        protected void generateKeysForAuth(string @ref, double ttl = 0)
         {
             this.curveKeys = Curve.generateKeyPair(Utils.randomBytes(32));
             var publicKey = Buffer.from(this.curveKeys.@public).toString("base64");
             var qrLoop = (ttl) =>
             {
-                var qr = new Array<String>{@ref, publicKey, this.authInfo.clientID}.join(",");
+                var qr = new List<string>
+                {
+                    @ref,
+                    publicKey,
+                    this.authInfo.clientID
+                }.join(",");
                 this.emit("qr", qr);
                 this.initTimeout = setTimeout(() =>
                 {
@@ -207,8 +247,7 @@ namespace Bailey
                     }
                     catch (Exception error)
                     {
-                        this.logger.warn(new Hashtable<String, dynamic>()
-                        {{"error", error}}, $"error in QR gen");
+                        this.logger.warn(new Dictionary<string, dynamic>() { { "error", error } }, $"error in QR gen");
                         if (error.status == 429 && this.state != "open")
                         {
                             this.endConnection(error.message);
@@ -217,12 +256,8 @@ namespace Bailey
                     }
 
                     qrLoop(ttl);
-                }
-
-                , ttl || 20000);
-            }
-
-            ;
+                }, ttl || 20000);
+            };
             qrLoop(ttl);
         }
     }

@@ -13,26 +13,25 @@ namespace Bailey
         {
             this.fetchGroupMetadataFromWA = (jid) =>
             {
-                var metadata = await this.query(new WAQuery()
-                {{"json", new Array<String>{"query", "GroupMetadata", jid}}, {"expect200", true}});
+                var metadata = await this.query(new WAQuery() { { "json", new List<string> { "query", "GroupMetadata", jid } }, { "expect200", true } });
                 metadata.participants = metadata.participants.map((p) => ((__spread__: this.contactAddOrGet(p.id), __spread__: p)));
                 return metadata as WAGroupMetadata;
-            }
-
-            ;
+            };
             this.groupMetadataMinimal = (jid) =>
             {
-                var query = new Array<String>{"query", (type: "group", jid: jid, epoch: this.msgCount.toString()), null};
-                var response = await this.query(new WAQuery()
-                {{"json", query}, {"binaryTags", new Array<WAMetric>{WAMetric.group, WAFlag.ignore}}, {"expect200", true}});
+                var query = new List<string>
+                {
+                    "query",
+                    (type: "group", jid: jid, epoch: this.msgCount.toString()),
+                    null
+                };
+                var response = await this.query(new WAQuery() { { "json", query }, { "binaryTags", new List<WAMetric> { WAMetric.group, WAFlag.ignore } }, { "expect200", true } });
                 var json = response[2][0];
                 var creatorDesc = json[1];
-                var participants = json[2] ? json[2].filter((item) => item[0] == "participant") : new Array<dynamic>();
+                var participants = json[2] ? json[2].filter((item) => item[0] == "participant") : new List<dynamic>();
                 var description = json[2] ? json[2].find((item) => item[0] == "description") : null;
                 return (id: jid, owner: creatorDesc.creator, creator: creatorDesc.creator, creation: parseInt(creatorDesc.create), subject: null, desc: description && description[2].toString("utf-8"), participants: participants.map((item) => ((__spread__: this.contactAddOrGet(item[1].jid), isAdmin: item[1].type == "admin")))) as WAGroupMetadata;
-            }
-
-            ;
+            };
             this.groupCreate = (title, participants) =>
             {
                 var response = await this.groupQuery("create", null, title, participants) as WAGroupCreateResponse;
@@ -51,12 +50,9 @@ namespace Bailey
                     this.logger.warn($"group ID switched from {gid} to {response.gid}");
                 }
 
-                await this.chatAdd(response.gid, title, new Hashtable<String, dynamic>()
-                {{"metadata", metadata}});
+                await this.chatAdd(response.gid, title, new Dictionary<string, dynamic>() { { "metadata", metadata } });
                 return response;
-            }
-
-            ;
+            };
             this.groupLeave = (jid) =>
             {
                 var response = await this.groupQuery("leave", jid);
@@ -64,58 +60,64 @@ namespace Bailey
                 if (chat)
                     chat.read_only = "true";
                 return response;
-            }
-
-            ;
+            };
             this.groupUpdateSubject = (jid, title) =>
             {
                 var chat = this.chats.get(jid);
                 if (chat.name == title)
-                    throw new BaileysError("redundant change", new
-                    {
-                    status = 400
-                    }
-
-                    );
+                    throw new BaileysError("redundant change", new Dictionary<string, int>() { { "status", 400 } });
                 var response = await this.groupQuery("subject", jid, title);
                 if (chat)
                     chat.name = title;
                 return response;
-            }
-
-            ;
+            };
             this.groupUpdateDescription = (jid, description) =>
             {
                 var metadata = await this.groupMetadata(jid);
-                WANode node = new WANode{"description", (id: generateMessageID(), prev: metadata.descId), Buffer.from(description, "utf-8")};
-                var response = await this.groupQuery("description", jid, null, null, new Array<WANode>{node});
+                WANode node = new WANode
+                {
+                    "description",
+                    (id: generateMessageID(), prev: metadata.descId),
+                    Buffer.from(description, "utf-8")
+                };
+                var response = await this.groupQuery("description", jid, null, null, new List<WANode> { node });
                 return response;
-            }
-
-            ;
+            };
             this.groupAdd = (jid, participants) => this.groupQuery("add", jid, null, participants) as Promise<WAGroupModification>;
             this.groupRemove = (jid, participants) => this.groupQuery("remove", jid, null, participants) as Promise<WAGroupModification>;
             this.groupMakeAdmin = (jid, participants) => this.groupQuery("promote", jid, null, participants) as Promise<WAGroupModification>;
             this.groupDemoteAdmin = (jid, participants) => this.groupQuery("demote", jid, null, participants) as Promise<WAGroupModification>;
             this.groupSettingChange = (jid, setting, onlyAdmins) =>
             {
-                WANode node = new WANode{setting, new Hashtable<String, String>()
-                {{"value", onlyAdmins ? "true" : "false"}}, null};
-                return this.groupQuery("prop", jid, null, null, new Array<WANode>{node}) as Promise<Hashtable<String, double>>;
-            }
-
-            ;
+                WANode node = new WANode
+                {
+                    setting,
+                    new Dictionary<string, string>()
+                    {
+                        {
+                            "value",
+                            onlyAdmins ? "true" : "false"
+                        }
+                    },
+                    null
+                };
+                return this.groupQuery("prop", jid, null, null, new List<WANode> { node }) as Promise<Dictionary<string, double>>;
+            };
         }
 
         /// <summary>
         /// Generic function for group queries
         /// </summary>
-        async public void groupQuery(String type, String jid = null, String subject = null, Array<String> participants = null, Array<WANode> additionalNodes = null)
+        async public void groupQuery(string type, string jid = null, string subject = null, List<string> participants = null, List<WANode> additionalNodes = null)
         {
             var tag = this.generateMessageTag();
-            WANode json = new WANode{"group", (author: this.user.jid, id: tag, type: type, jid: jid, subject: subject), participants ? participants.map((jid) => new Array<String>{"participant", new Hashtable<String, dynamic>()
-            {{"jid", jid}}, null}) : additionalNodes};
-            var result = await this.setQuery(new Array<WANode>{json}, new WATag{WAMetric.group, 136}, tag);
+            WANode json = new WANode
+            {
+                "group",
+                (author: this.user.jid, id: tag, type: type, jid: jid, subject: subject),
+                participants ? participants.map((jid) => new List<string> { "participant", new Dictionary<string, dynamic>() { { "jid", jid } }, null }) : additionalNodes
+            };
+            var result = await this.setQuery(new List<WANode> { json }, new WATag { WAMetric.group, 136 }, tag);
             return result;
         }
 
@@ -123,7 +125,7 @@ namespace Bailey
         /// Get the metadata of the group
         /// Baileys automatically caches & maintains this state
         /// </summary>
-        async public void groupMetadata(String jid)
+        async public void groupMetadata(string jid)
         {
             var chat = this.chats.get(jid);
             var metadata = chat.metadata;
@@ -148,21 +150,11 @@ namespace Bailey
         /// <summary>
         /// Get the metadata of the group from WA
         /// </summary>
-        public dynamic fetchGroupMetadataFromWA
-        {
-            get;
-            set;
-        }
-
+        public dynamic fetchGroupMetadataFromWA { get; set; }
         /// <summary>
         /// Get the metadata (works after you've left the group also)
         /// </summary>
-        public dynamic groupMetadataMinimal
-        {
-            get;
-            set;
-        }
-
+        public dynamic groupMetadataMinimal { get; set; }
         /// <summary>
         /// Create a group
         /// </summary>
@@ -172,24 +164,14 @@ namespace Bailey
         /// <param name = "participants">
         /// people to include in the group
         /// </param>
-        public dynamic groupCreate
-        {
-            get;
-            set;
-        }
-
+        public dynamic groupCreate { get; set; }
         /// <summary>
         /// Leave a group
         /// </summary>
         /// <param name = "jid">
         /// the ID of the group
         /// </param>
-        public dynamic groupLeave
-        {
-            get;
-            set;
-        }
-
+        public dynamic groupLeave { get; set; }
         /// <summary>
         /// Update the subject of the group
         /// </summary>
@@ -199,12 +181,7 @@ namespace Bailey
         /// <param name = "title">
         /// the new title of the group
         /// </param>
-        public dynamic groupUpdateSubject
-        {
-            get;
-            set;
-        }
-
+        public dynamic groupUpdateSubject { get; set; }
         /// <summary>
         /// Update the group description
         /// </summary>
@@ -214,12 +191,7 @@ namespace Bailey
         /// <param name = "title">
         /// the new title of the group
         /// </param>
-        public dynamic groupUpdateDescription
-        {
-            get;
-            set;
-        }
-
+        public dynamic groupUpdateDescription { get; set; }
         /// <summary>
         /// Add somebody to the group
         /// </summary>
@@ -229,12 +201,7 @@ namespace Bailey
         /// <param name = "participants">
         /// the people to add
         /// </param>
-        public dynamic groupAdd
-        {
-            get;
-            set;
-        }
-
+        public dynamic groupAdd { get; set; }
         /// <summary>
         /// Remove somebody from the group
         /// </summary>
@@ -244,12 +211,7 @@ namespace Bailey
         /// <param name = "participants">
         /// the people to remove
         /// </param>
-        public dynamic groupRemove
-        {
-            get;
-            set;
-        }
-
+        public dynamic groupRemove { get; set; }
         /// <summary>
         /// Make someone admin on the group
         /// </summary>
@@ -259,12 +221,7 @@ namespace Bailey
         /// <param name = "participants">
         /// the people to make admin
         /// </param>
-        public dynamic groupMakeAdmin
-        {
-            get;
-            set;
-        }
-
+        public dynamic groupMakeAdmin { get; set; }
         /// <summary>
         /// Make demote an admin on the group
         /// </summary>
@@ -274,12 +231,7 @@ namespace Bailey
         /// <param name = "participants">
         /// the people to make admin
         /// </param>
-        public dynamic groupDemoteAdmin
-        {
-            get;
-            set;
-        }
-
+        public dynamic groupDemoteAdmin { get; set; }
         /// <summary>
         /// Make demote an admin on the group
         /// </summary>
@@ -289,11 +241,7 @@ namespace Bailey
         /// <param name = "participants">
         /// the people to make admin
         /// </param>
-        public dynamic groupSettingChange
-        {
-            get;
-            set;
-        }
+        public dynamic groupSettingChange { get; set; }
 
         /// <summary>
         /// Get the invite link of the given group
@@ -304,12 +252,16 @@ namespace Bailey
         /// <returns>
         /// invite code
         /// </returns>
-        async public void groupInviteCode(String jid)
+        async public void groupInviteCode(string jid)
         {
-            var json = new Array<String>{"query", "inviteCode", jid};
-            var response = await this.query(new WAQuery()
-            {{"json", json}, {"expect200", true}, {"requiresPhoneConnection", false}});
-            return response.code as String;
+            var json = new List<string>
+            {
+                "query",
+                "inviteCode",
+                jid
+            };
+            var response = await this.query(new WAQuery() { { "json", json }, { "expect200", true }, { "requiresPhoneConnection", false } });
+            return response.code as string;
         }
 
         /// <summary>
@@ -321,11 +273,15 @@ namespace Bailey
         /// <returns>
         /// Object containing gid
         /// </returns>
-        async public void acceptInvite(String code)
+        async public void acceptInvite(string code)
         {
-            var json = new Array<String>{"action", "invite", code};
-            var response = await this.query(new WAQuery()
-            {{"json", json}, {"expect200", true}});
+            var json = new List<string>
+            {
+                "action",
+                "invite",
+                code
+            };
+            var response = await this.query(new WAQuery() { { "json", json }, { "expect200", true } });
             return response;
         }
 
@@ -335,11 +291,15 @@ namespace Bailey
         /// <param name = "jid">
         /// the ID of the group
         /// </param>
-        async public void revokeInvite(String jid)
+        async public void revokeInvite(string jid)
         {
-            var json = new Array<String>{"action", "inviteReset", jid};
-            var response = await this.query(new WAQuery()
-            {{"json", json}, {"expect200", true}});
+            var json = new List<string>
+            {
+                "action",
+                "inviteReset",
+                jid
+            };
+            var response = await this.query(new WAQuery() { { "json", json }, { "expect200", true } });
             return response;
         }
     }

@@ -17,12 +17,7 @@ namespace Bailey
         {
             if (this.state != "close")
             {
-                throw new BaileysError("cannot connect when state=" + this.state, new
-                {
-                status = 409
-                }
-
-                );
+                throw new BaileysError("cannot connect when state=" + this.state, new Dictionary<string, int>() { { "status", 409 } });
             }
 
             var options = this.connectOptions;
@@ -48,9 +43,8 @@ namespace Bailey
                     var loggedOut = error is BaileysError && UNAUTHORIZED_CODES.includes((error as BaileysError).status);
                     var willReconnect = !loggedOut && (tries < options.maxRetries) && (this.state == "connecting");
                     var reason = loggedOut ? DisconnectReason.invalidSession : error.message;
-                    this.logger.warn(new Hashtable<String, dynamic>()
-                    {{"error", error}}, $"connect attempt {tries} failed: {error}{willReconnect ? ", retrying..." : ""}");
-                    if ((this.state as String) != "close" && !willReconnect)
+                    this.logger.warn(new Dictionary<string, dynamic>() { { "error", error } }, $"connect attempt {tries} failed: {error}{willReconnect ? ", retrying..." : ""}");
+                    if ((this.state as string) != "close" && !willReconnect)
                     {
                         this.closeInternal(reason);
                     }
@@ -73,7 +67,7 @@ namespace Bailey
         /// </summary>
         protected async void connectInternal(WAConnectOptions options, double delayMs = 0)
         {
-            Array<AAA___ (e?: Error) => void ___AAA> rejections = new Array<AAA___ (e?: Error) => void ___AAA>();
+            List<Action<Error>> rejections = new List<Action<Error>>();
             var rejectAll = (e) => rejections.forEach((r) => r(e));
             var rejectAllOnWSClose = ({ reason }) => rejectAll(new Error(reason));
             var connect = () => (new Promise((resolve, reject) =>
@@ -81,12 +75,7 @@ namespace Bailey
                 rejections.push(reject);
                 var shouldUseReconnect = (this.lastDisconnectReason == DisconnectReason.close || this.lastDisconnectReason == DisconnectReason.lost) && !this.connectOptions.alwaysUseTakeover;
                 var reconnectID = shouldUseReconnect && this.user.jid.replace("@s.whatsapp.net", "@c.us");
-                this.conn = new WS(WS_URL, null, (origin: DEFAULT_ORIGIN, timeout: this.connectOptions.maxIdleTimeMs, agent: options.agent, headers: new
-                {
-                Accept-Encoding = "gzip, deflate, br", Accept-Language = "en-US,en;q=0.9", Cache-Control = "no-cache", Host = "web.whatsapp.com", Pragma = "no-cache", Sec-WebSocket-Extensions = "permessage-deflate; client_max_window_bits"
-                }
-
-                ));
+                this.conn = new WS(WS_URL, null, (origin: DEFAULT_ORIGIN, timeout: this.connectOptions.maxIdleTimeMs, agent: options.agent, headers: (Accept_Encoding: "gzip, deflate, br", Accept_Language: "en-US,en;q=0.9", Cache_Control: "no-cache", Host: "web.whatsapp.com", Pragma: "no-cache", Sec_WebSocket_Extensions: "permessage-deflate; client_max_window_bits")));
                 this.conn.on("message", (data) => this.onMessageRecieved(data as dynamic));
                 this.conn.once("open", () =>
                 {
@@ -104,14 +93,10 @@ namespace Bailey
                     {
                         reject(error);
                     }
-                }
-
-                );
+                });
                 this.conn.on("error", rejectAll);
                 this.conn.on("close", () => rejectAll(new Error(DisconnectReason.close)));
-            }
-
-            ) as Promise<WAOpenResult>);
+            }) as Promise<WAOpenResult>);
             this.on("ws-close", rejectAllOnWSClose);
             try
             {
@@ -140,7 +125,7 @@ namespace Bailey
             }
         }
 
-        private void onMessageRecieved(dynamic message)
+        private void onMessageRecieved(OrType<string, Buffer> message)
         {
             if (message[0] == "!")
             {
@@ -150,7 +135,7 @@ namespace Bailey
             }
             else
             {
-                String messageTag;
+                string messageTag;
                 dynamic json;
                 try
                 {
@@ -160,8 +145,7 @@ namespace Bailey
                 }
                 catch (Exception error)
                 {
-                    this.logger.error(new Hashtable<String, dynamic>()
-                    {{"error", error}}, $"encountered error in decrypting message, closing: {error}");
+                    this.logger.error(new Dictionary<string, dynamic>() { { "error", error } }, $"encountered error in decrypting message, closing: {error}");
                     this.unexpectedDisconnect(DisconnectReason.badSession);
                 }
 
@@ -177,24 +161,21 @@ namespace Bailey
                 var anyTriggered = false;
                 anyTriggered = this.emit($"{DEF_TAG_PREFIX}{messageTag}", json);
                 var l0 = json[0] || "";
-                var l1 = TypeOf(json[1]) != "object" || json[1] == null ? new Hashtable<String, dynamic>() : json[1];
-                var l2 = ((json[2] || new Array<dynamic>())[0] || new Array<dynamic>())[0] || "";
+                var l1 = TypeOf(json[1]) != "object" || json[1] == null ? new Dictionary<string, dynamic>() : json[1];
+                var l2 = ((json[2] || new List<dynamic>())[0] || new List<dynamic>())[0] || "";
                 Object.keys(l1).forEach((key) =>
                 {
                     anyTriggered = this.emit($"{DEF_CALLBACK_PREFIX}{l0},{key}:{l1[key]},{l2}", json) || anyTriggered;
                     anyTriggered = this.emit($"{DEF_CALLBACK_PREFIX}{l0},{key}:{l1[key]}", json) || anyTriggered;
                     anyTriggered = this.emit($"{DEF_CALLBACK_PREFIX}{l0},{key}", json) || anyTriggered;
-                }
-
-                );
+                });
                 anyTriggered = this.emit($"{DEF_CALLBACK_PREFIX}{l0},,{l2}", json) || anyTriggered;
                 anyTriggered = this.emit($"{DEF_CALLBACK_PREFIX}{l0}", json) || anyTriggered;
                 if (anyTriggered)
                     return;
                 if (this.logger.level == "debug")
                 {
-                    this.logger.debug(new Hashtable<String, bool>()
-                    {{"unhandled", true}}, messageTag + "," + JSON.stringify(json));
+                    this.logger.debug(new Dictionary<string, bool>() { { "unhandled", true } }, messageTag + "," + JSON.stringify(json));
                 }
             }
         }
@@ -214,9 +195,7 @@ namespace Bailey
                     this.unexpectedDisconnect(DisconnectReason.lost);
                 else if (this.conn)
                     this.send("?,,");
-            }
-
-            , KEEP_ALIVE_INTERVAL_MS);
+            }, KEEP_ALIVE_INTERVAL_MS);
         }
     }
 }

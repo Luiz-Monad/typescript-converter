@@ -6,7 +6,7 @@ using TypeScript.CSharp;
 
 namespace Bailey
 {
-    public class Decoder : Object
+    public class Decoder
     {
         public Decoder()
         {
@@ -14,17 +14,8 @@ namespace Bailey
             this.index = 0;
         }
 
-        public Buffer buffer
-        {
-            get;
-            set;
-        }
-
-        public int index
-        {
-            get;
-            set;
-        }
+        public Buffer buffer { get; set; }
+        public int index { get; set; }
 
         public void checkEOS(double length)
         {
@@ -172,7 +163,7 @@ namespace Bailey
             }
         }
 
-        public String readString(double tag)
+        public string readString(double tag)
         {
             if (tag >= 3 && tag <= 235)
             {
@@ -246,7 +237,7 @@ namespace Bailey
             return WA.SingleByteTokens[index];
         }
 
-        public String getTokenDouble(dynamic index1, dynamic index2)
+        public string getTokenDouble(dynamic index1, dynamic index2)
         {
             var n = 256 * index1 + index2;
             if (n < 0 || n > WA.DoubleByteTokens.length)
@@ -283,7 +274,7 @@ namespace Bailey
                 }
                 else
                 {
-                    dynamic decoded;
+                    OrType<Buffer, string> decoded;
                     switch (tag)
                     {
                         case WA.Tags.BINARY_8:
@@ -311,7 +302,12 @@ namespace Bailey
                 }
             }
 
-            return new WA.Node{descr, attrs, content};
+            return new WA.Node
+            {
+                descr,
+                attrs,
+                content
+            };
         }
 
         public void read(Buffer buffer)

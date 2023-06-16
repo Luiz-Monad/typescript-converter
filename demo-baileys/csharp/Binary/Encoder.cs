@@ -6,18 +6,14 @@ using TypeScript.CSharp;
 
 namespace Bailey
 {
-    public class Encoder : Object
+    public class Encoder
     {
         public Encoder()
         {
-            this.data = new Array<double>();
+            this.data = new List<double>();
         }
 
-        public Array<double> data
-        {
-            get;
-            set;
-        }
+        public List<double> data { get; set; }
 
         public void pushByte(double value)
         {
@@ -35,10 +31,10 @@ namespace Bailey
 
         public void pushInt20(double value)
         {
-            this.pushBytes(new dynamic{(value >> 16) & 15, (value >> 8) & 255, value & 255});
+            this.pushBytes(new OrType<Uint8Array, Buffer, List<double>> { (value >> 16) & 15, (value >> 8) & 255, value & 255 });
         }
 
-        public void pushBytes(dynamic bytes)
+        public void pushBytes(OrType<Uint8Array, Buffer, List<double>> bytes)
         {
             bytes.forEach((b) => this.data.push(b));
         }
@@ -64,14 +60,14 @@ namespace Bailey
             }
         }
 
-        public void writeStringRaw(String @string)
+        public void writeStringRaw(string @string)
         {
             var bytes = Buffer.from(@string, "utf-8");
             this.writeByteLength(bytes.length);
             this.pushBytes(bytes);
         }
 
-        public void writeJid(String left, String right)
+        public void writeJid(string left, string right)
         {
             this.pushByte(WA.Tags.JID_PAIR);
             left && left.Length > 0 ? this.writeString(left) : this.writeToken(WA.Tags.LIST_EMPTY);
@@ -90,7 +86,7 @@ namespace Bailey
             }
         }
 
-        public void writeString(String token, bool i = null)
+        public void writeString(string token, bool i = null)
         {
             if (token == "c.us")
                 token = "s.whatsapp.net";
@@ -132,7 +128,7 @@ namespace Bailey
             }
         }
 
-        public void writeAttributes(dynamic attrs, Array<String> keys)
+        public void writeAttributes(OrType<Record<string, string>, string> attrs, List<string> keys)
         {
             if (!attrs)
             {
@@ -143,9 +139,7 @@ namespace Bailey
             {
                 this.writeString(key);
                 this.writeString(attrs[key]);
-            }
-
-            );
+            });
         }
 
         public void writeListStart(double listSize)
@@ -156,15 +150,15 @@ namespace Bailey
             }
             else if (listSize < 256)
             {
-                this.pushBytes(new dynamic{WA.Tags.LIST_8, listSize});
+                this.pushBytes(new OrType<Uint8Array, Buffer, List<double>> { WA.Tags.LIST_8, listSize });
             }
             else
             {
-                this.pushBytes(new dynamic{WA.Tags.LIST_16, listSize});
+                this.pushBytes(new OrType<Uint8Array, Buffer, List<double>> { WA.Tags.LIST_16, listSize });
             }
         }
 
-        public void writeChildren(dynamic children)
+        public void writeChildren(OrType<string, List<WA.Node>, Buffer, Object> children)
         {
             if (!children)
                 return;
@@ -196,7 +190,7 @@ namespace Bailey
 
         public void getValidKeys(Object obj)
         {
-            return obj ? Object.keys(obj).filter((key) => obj[key] != null && obj[key] != undefined) : new void ();
+            return obj ? Object.keys(obj).filter((key) => obj[key] != null && obj[key] != undefined) : new List<>();
         }
 
         public void writeNode(WA.Node node)
@@ -219,7 +213,7 @@ namespace Bailey
 
         public void write(dynamic data)
         {
-            this.data = new Array<double>();
+            this.data = new List<double>();
             this.writeNode(data);
             return Buffer.from(this.data);
         }

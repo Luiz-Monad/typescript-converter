@@ -6,7 +6,7 @@ using TypeScript.CSharp;
 
 namespace Bailey
 {
-    using NodeAttributes = dynamic;
-    using NodeData = dynamic;
-    using Node = Array<Object>;
+    using NodeAttributes = Nullable<OrType<Dictionary<string, string>, string>>;
+    using NodeData = Nullable<OrType<List<Node>, dynamic>>;
+    using Node = List<object>;
 }

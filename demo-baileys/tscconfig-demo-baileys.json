@@ -4,13 +4,14 @@
   ],
   "exclude": [],
   "samples": [],
-  "_target": {
+  "target": {
     "lang": "csharp",
     "outputs": [
       {
         "path": "csharp",
         "flatOutput": false,
-        "preferTypeScriptType": true,
+        "typeScriptType": false,
+        "typeScriptAdvancedType": true,
         "namespace": "Bailey",
         "usings": [
           "System.Linq",
@@ -19,13 +20,14 @@
       }
     ]
   },
-  "target": {
+  "_target": {
     "lang": "java",
     "outputs": [
       {
         "path": "java",
         "flatOutput": false,
-        "preferTypeScriptType": true,
+        "typeScriptType": false,
+        "typeScriptAdvancedType": true,
         "namespace": "demo",
         "usings": [
         ]

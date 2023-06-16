@@ -6,32 +6,18 @@ using TypeScript.CSharp;
 
 namespace Bailey
 {
-    class MyClass : Object
+    class MyClass
     {
         public MyClass()
         {
             this.didDoWork = false;
-            this.values = new Hashtable<String, double>();
+            this.values = new Dictionary<string, double>();
             this.counter = 0;
         }
 
-        public bool didDoWork
-        {
-            get;
-            set;
-        }
-
-        public Hashtable<String, double> values
-        {
-            get;
-            set;
-        }
-
-        public int counter
-        {
-            get;
-            set;
-        }
+        public bool didDoWork { get; set; }
+        public Dictionary<string, double> values { get; set; }
+        public int counter { get; set; }
 
         async public void myFunction()
         {
@@ -46,7 +32,7 @@ namespace Bailey
             this.didDoWork = true;
         }
 
-        async public void myKeyedFunction(String key)
+        async public void myKeyedFunction(string key)
         {
             if (!this.values[key])
             {
@@ -59,7 +45,7 @@ namespace Bailey
             return this.values[key];
         }
 
-        async public void myQueingFunction(String key)
+        async public void myQueingFunction(string key)
         {
             await new Promise((resolve) => setTimeout(resolve, DEFAULT_WAIT));
         }

@@ -13,7 +13,7 @@ namespace Bailey
         {
             var tasks = this.chats.all().filter((chat) => chat.count > 0).map((chat) => this.loadMessages(chat.jid, chat.count));
             var list = await Promise.all(tasks);
-            Array<WAMessage> combined = new Array<WAMessage>();
+            List<WAMessage> combined = new List<WAMessage>();
             list.forEach(({messages}) => combined.push(messages.ToArray()));
             return combined;
         }
@@ -21,13 +21,26 @@ namespace Bailey
         /// <summary>
         /// Get the message info, who has read it, who its been delivered to
         /// </summary>
-        async public void messageInfo(String jid, String messageID)
+        async public void messageInfo(string jid, string messageID)
         {
-            var query = new Array<String>{"query", (type: "message_info", index: messageID, jid: jid, epoch: this.msgCount.toString()), null};
-            var [,,response] = await this.query(new WAQuery()
-            {{"json", query}, {"binaryTags", new Array<WAMetric>{WAMetric.queryRead, WAFlag.ignore}}, {"expect200", true}, {"requiresPhoneConnection", true}});
+            var query = new List<string>
+            {
+                "query",
+                (type: "message_info", index: messageID, jid: jid, epoch: this.msgCount.toString()),
+                null
+            };
+            var [,,response] = await this.query(new WAQuery() { { "json", query }, { "binaryTags", new List<WAMetric> { WAMetric.queryRead, WAFlag.ignore } }, { "expect200", true }, { "requiresPhoneConnection", true } });
             MessageInfo info = new MessageInfo()
-            {{"reads", new Array<dynamic>()}, {"deliveries", new Array<dynamic>()}};
+            {
+                {
+                    "reads",
+                    new List<dynamic>()
+                },
+                {
+                    "deliveries",
+                    new List<dynamic>()
+                }
+            };
             if (response)
             {
                 var reads = response.filter((node) => node[0] == "read");
@@ -55,7 +68,7 @@ namespace Bailey
         /// <param name = "unread">
         /// unreads the chat, if true
         /// </param>
-        async public void chatRead(String jid, dynamic type = "read")
+        async public void chatRead(string jid, string /*unread*/ type = "read")
         {
             jid = whatsappID(jid);
             var chat = this.assertChatGet(jid);
@@ -63,7 +76,7 @@ namespace Bailey
             if (type == "unread" || chat.count != 0)
             {
                 var idx = await this.getChatIndex(jid);
-                await this.setQuery(new Array<WANode>{new Array<WANode>{"read", (jid: jid, count: count, __spread__: idx, participant: undefined), null}}, new WATag{WAMetric.read, WAFlag.ignore});
+                await this.setQuery(new List<WANode> { new List<WANode> { "read", (jid: jid, count: count, __spread__: idx, participant: undefined), null } }, new WATag { WAMetric.read, WAFlag.ignore });
             }
 
             chat.count = type == "unread" ? -1 : 0;
@@ -83,19 +96,23 @@ namespace Bailey
         /// <param name = "count">
         /// number of messages to read, set to < 0 to unread a message
         /// </param>
-        async public void sendReadReceipt(String jid, WAMessageKey messageKey, double count)
+        async public void sendReadReceipt(string jid, WAMessageKey messageKey, double count)
         {
             var attributes = (jid: jid, count: count.toString(), index: messageKey.id, participant: messageKey.participant || undefined, owner: messageKey.fromMe.toString());
-            var read = await this.setQuery(new Array<WANode>{new Array<WANode>{"read", attributes, null}}, new WATag{WAMetric.read, WAFlag.ignore});
+            var read = await this.setQuery(new List<WANode> { new List<WANode> { "read", attributes, null } }, new WATag { WAMetric.read, WAFlag.ignore });
             return read;
         }
 
-        async public void fetchMessagesFromWA(String jid, double count, (String id, bool fromMe)indexMessage = null, bool mostRecentFirst = true)
+        async public void fetchMessagesFromWA(string jid, double count, (string id, bool fromMe) indexMessage = null, bool mostRecentFirst = true)
         {
-            var json = new Array<String>{"query", (epoch: this.msgCount.toString(), type: "message", jid: jid, kind: mostRecentFirst ? "before" : "after", count: count.toString(), index: indexMessage.id, owner: indexMessage.fromMe == false ? "false" : "true"), null};
-            var response = await this.query(new WAQuery()
-            {{"json", json}, {"binaryTags", new Array<WAMetric>{WAMetric.queryMessages, WAFlag.ignore}}, {"expect200", false}, {"requiresPhoneConnection", true}});
-            return (response[2].AsArray<WANode>()).map((item) => item[2] as WAMessage) || new Array<dynamic>();
+            var json = new List<string>
+            {
+                "query",
+                (epoch: this.msgCount.toString(), type: "message", jid: jid, kind: mostRecentFirst ? "before" : "after", count: count.toString(), index: indexMessage.id, owner: indexMessage.fromMe == false ? "false" : "true"),
+                null
+            };
+            var response = await this.query(new WAQuery() { { "json", json }, { "binaryTags", new List<WAMetric> { WAMetric.queryMessages, WAFlag.ignore } }, { "expect200", false }, { "requiresPhoneConnection", true } });
+            return (response[2].AsArray<WANode>()).map((item) => item[2] as WAMessage) || new List<dynamic>();
         }
 
         /// <summary>
@@ -110,14 +127,14 @@ namespace Bailey
         /// <param name = "mostRecentFirst">
         /// retrieve the most recent message first or retrieve from the converation start
         /// </param>
-        async public void loadMessages(String jid, double count, (String id, bool fromMe)cursor = null, bool mostRecentFirst = true)
+        async public void loadMessages(string jid, double count, (string id, bool fromMe) cursor = null, bool mostRecentFirst = true)
         {
             jid = whatsappID(jid);
             var retrieve = (count, indexMessage) => this.fetchMessagesFromWA(jid, count, indexMessage, mostRecentFirst);
             var chat = this.chats.get(jid);
             var hasCursor = cursor.id && TypeOf(cursor.fromMe) != "undefined";
             var cursorValue = hasCursor && chat.messages.get(GET_MESSAGE_ID(cursor));
-            Array<WAMessage> messages;
+            List<WAMessage> messages;
             if (chat.messages && mostRecentFirst && (!hasCursor || cursorValue))
             {
                 messages = chat.messages.paginatedByValue(cursorValue, count, null, "before");
@@ -151,8 +168,11 @@ namespace Bailey
                 cursor = (id: messages[0].key.id, fromMe: messages[0].key.fromMe);
             else
                 cursor = null;
-            return new void ()
-            {{"messages", messages}, {"cursor", cursor}};
+            return new
+            {
+                messages = messages,
+                cursor = cursor
+            };
         }
 
         /// <summary>
@@ -167,7 +187,7 @@ namespace Bailey
         /// <param name = "mostRecentFirst">
         /// retrieve the most recent message first or retrieve from the converation start
         /// </param>
-        public void loadAllMessages(String jid, AAA___ (m: WAMessage) => Promise<void>|void ___AAA onMessage, int chunkSize = 25, bool mostRecentFirst = true)
+        public void loadAllMessages(string jid, Func<WAMessage, OrType<Promise<>, void>> onMessage, int chunkSize = 25, bool mostRecentFirst = true)
         {
             dynamic offsetID = null;
             var loadMessage = () =>
@@ -197,10 +217,8 @@ namespace Bailey
                     await delay(200);
                     return loadMessage();
                 }
-            }
-
-            ;
-            return loadMessage() as Promise<void>;
+            };
+            return loadMessage() as Promise<>;
         }
 
         /// <summary>
@@ -212,7 +230,7 @@ namespace Bailey
         /// <param name = "onMessage">
         /// callback for every message retrieved, if return true -- the loop will break
         /// </param>
-        async public void findMessage(String jid, double chunkSize, AAA___ (m: WAMessage) => boolean ___AAA onMessage)
+        async public void findMessage(string jid, double chunkSize, Func<WAMessage, bool> onMessage)
         {
             var chat = this.chats.get(whatsappID(jid));
             var count = chat.messages.all().length || chunkSize;
@@ -241,7 +259,7 @@ namespace Bailey
             var stamp = unixTimestampSeconds(date);
             var idx = this.chats.all().findIndex((c) => c.t < stamp);
             var chats = this.chats.all().slice(0, idx);
-            Array<WAMessage> messages = new Array<WAMessage>();
+            List<WAMessage> messages = new List<WAMessage>();
             await Promise.all(chats.map((chat) =>
             {
                 await this.findMessage(chat.jid, 5, (m) =>
@@ -249,19 +267,15 @@ namespace Bailey
                     if (toNumber(m.messageTimestamp) < stamp || (onlyUnrespondedMessages && m.key.fromMe))
                         return true;
                     messages.push(m);
-                }
-
-                );
-            }
-
-            ));
+                });
+            }));
             return messages;
         }
 
         /// <summary>
         /// Load a single message specified by the ID
         /// </summary>
-        async public void loadMessage(String jid, String id)
+        async public void loadMessage(string jid, string id)
         {
             WAMessage message;
             jid = whatsappID(jid);
@@ -298,14 +312,21 @@ namespace Bailey
         /// <param name = "page">
         /// page number of results (starts from 1)
         /// </param>
-        async public void searchMessages(String txt, String inJid, double count, double page)
+        async public void searchMessages(string txt, string inJid, double count, double page)
         {
-            var json = new Array<String>{"query", (epoch: this.msgCount.toString(), type: "search", search: Buffer.from(txt, "utf-8"), count: count.toString(), page: page.toString(), jid: inJid), null};
-            WANode response = await this.query(new WAQuery()
-            {{"json", json}, {"binaryTags", new Array<double>{24, WAFlag.ignore}}, {"expect200", true}});
-            var messages = response[2] ? response[2].map((row) => row[2]) : new Array<dynamic>();
-            return new void ()
-            {{"last", response[1]["last"] == "true"}, {"messages", messages.AsArray<WAMessage>()}};
+            var json = new List<string>
+            {
+                "query",
+                (epoch: this.msgCount.toString(), type: "search", search: Buffer.from(txt, "utf-8"), count: count.toString(), page: page.toString(), jid: inJid),
+                null
+            };
+            WANode response = await this.query(new WAQuery() { { "json", json }, { "binaryTags", new List<double> { 24, WAFlag.ignore } }, { "expect200", true } });
+            var messages = response[2] ? response[2].map((row) => row[2]) : new List<dynamic>();
+            return new
+            {
+                last = response[1]["last"] == "true",
+                messages = messages.AsArray<WAMessage>()
+            };
         }
 
         /// <summary>
@@ -317,8 +338,21 @@ namespace Bailey
         async public void clearMessage(WAMessageKey messageKey)
         {
             var tag = Math.round(Math.random() * 1000000);
-            WANode attrs = new WANode{"chat", (jid: messageKey.remoteJid, modify_tag: tag.toString(), type: "clear"), new Array<WANode>{new Array<dynamic>{"item", (owner: $"{messageKey.fromMe}", index: messageKey.id), null}}};
-            var result = await this.setQuery(new Array<WANode>{attrs});
+            WANode attrs = new WANode
+            {
+                "chat",
+                (jid: messageKey.remoteJid, modify_tag: tag.toString(), type: "clear"),
+                new List<WANode>
+                {
+                    new List<dynamic>
+                    {
+                        "item",
+                        (owner: $"{messageKey.fromMe}", index: messageKey.id),
+                        null
+                    }
+                }
+            };
+            var result = await this.setQuery(new List<WANode> { attrs });
             var chat = this.chats.get(whatsappID(messageKey.remoteJid));
             if (chat)
             {
@@ -335,10 +369,23 @@ namespace Bailey
         /// <param name = "messageKey">
         /// key of the message you want to star or unstar
         /// </param>
-        async public void starMessage(WAMessageKey messageKey, dynamic type = "star")
+        async public void starMessage(WAMessageKey messageKey, string /*star*/ type = "star")
         {
-            WANode attrs = new WANode{"chat", (jid: messageKey.remoteJid, type: type), new Array<WANode>{new Array<dynamic>{"item", (owner: $"{messageKey.fromMe}", index: messageKey.id), null}}};
-            var result = await this.setQuery(new Array<WANode>{attrs});
+            WANode attrs = new WANode
+            {
+                "chat",
+                (jid: messageKey.remoteJid, type: type),
+                new List<WANode>
+                {
+                    new List<dynamic>
+                    {
+                        "item",
+                        (owner: $"{messageKey.fromMe}", index: messageKey.id),
+                        null
+                    }
+                }
+            };
+            var result = await this.setQuery(new List<WANode> { attrs });
             var chat = this.chats.get(whatsappID(messageKey.remoteJid));
             if (result.status == 200 && chat)
             {
@@ -347,7 +394,16 @@ namespace Bailey
                 {
                     message.starred = type == "star";
                     Partial<WAChat> chatUpdate = new Partial<WAChat>()
-                    {{"jid", messageKey.remoteJid}, {"messages", newMessagesDB(new Array<dynamic>{message})}};
+                    {
+                        {
+                            "jid",
+                            messageKey.remoteJid
+                        },
+                        {
+                            "messages",
+                            newMessagesDB(new List<dynamic> { message })
+                        }
+                    };
                     this.emit("chat-update", chatUpdate);
                 }
             }
@@ -364,7 +420,7 @@ namespace Bailey
         /// <param name = "messageKey">
         /// key of the message you want to delete
         /// </param>
-        async public void deleteMessage(dynamic k, WAMessageKey messageKey = null)
+        async public void deleteMessage(OrType<string, WAMessageKey> k, WAMessageKey messageKey = null)
         {
             if (TypeOf(k) == "object")
             {
@@ -372,8 +428,13 @@ namespace Bailey
             }
 
             WAMessageContent json = new WAMessageContent()
-            {{"protocolMessage", (key: messageKey, type: WAMessageProto.ProtocolMessage.ProtocolMessageType.REVOKE)}};
-            var waMessage = this.prepareMessageFromContent(messageKey.remoteJid, json, new Hashtable<String, dynamic>());
+            {
+                {
+                    "protocolMessage",
+                    (key: messageKey, type: WAMessageProto.ProtocolMessage.ProtocolMessageType.REVOKE)
+                }
+            };
+            var waMessage = this.prepareMessageFromContent(messageKey.remoteJid, json, new Dictionary<string, dynamic>());
             await this.relayWAMessage(waMessage);
             return waMessage;
         }
@@ -391,20 +452,20 @@ namespace Bailey
         {
             var content = message.message;
             if (!content)
-                throw new BaileysError("no content in message", new
-                {
-                status = 400
-                }
-
-                );
+                throw new BaileysError("no content in message", new Dictionary<string, int>() { { "status", 400 } });
             content = WAMessageProto.Message.fromObject(content);
             var key = Object.keys(content)[0];
             var score = content[key].contextInfo.forwardingScore || 0;
             score += message.key.fromMe && !forceForward ? 0 : 1;
             if (key == MessageType.text)
             {
-                content[MessageType.extendedText] = new Hashtable<String, dynamic>()
-                {{"text", content[key]}};
+                content[MessageType.extendedText] = new Dictionary<string, dynamic>()
+                {
+                    {
+                        "text",
+                        content[key]
+                    }
+                };
                 content.Remove(MessageType.text);
                 key = MessageType.extendedText;
             }
@@ -412,7 +473,7 @@ namespace Bailey
             if (score > 0)
                 content[key].contextInfo = (forwardingScore: score, isForwarded: true);
             else
-                content[key].contextInfo = new Hashtable<String, dynamic>();
+                content[key].contextInfo = new Dictionary<string, dynamic>();
             return content;
         }
 
@@ -428,10 +489,10 @@ namespace Bailey
         /// <param name = "forceForward">
         /// will show the message as forwarded even if it is from you
         /// </param>
-        async public void forwardMessage(String jid, WAMessage message, bool forceForward = false)
+        async public void forwardMessage(string jid, WAMessage message, bool forceForward = false)
         {
             var content = this.generateForwardMessageContent(message, forceForward);
-            var waMessage = this.prepareMessageFromContent(jid, content, new Hashtable<String, dynamic>());
+            var waMessage = this.prepareMessageFromContent(jid, content, new Dictionary<string, dynamic>());
             await this.relayWAMessage(waMessage);
             return waMessage;
         }
@@ -445,7 +506,7 @@ namespace Bailey
         /// <param name = "includeStarred">
         /// delete starred messages, default false
         /// </param>
-        async public Promise<Hashtable<String, double>> modifyChat(String jid, ChatModification.clear type, bool includeStarred = false);
+        async public Promise<Dictionary<string, double>> modifyChat(string jid, ChatModification.clear type, bool includeStarred = false);
         /// <summary>
         /// Modify a given chat (archive, pin etc.)
         /// </summary>
@@ -455,28 +516,30 @@ namespace Bailey
         /// <param name = "durationMs">
         /// only for muting, how long to mute the chat for
         /// </param>
-        async public Promise<Hashtable<String, double>> modifyChat(String jid, dynamic type, double durationMs);
+        async public Promise<Dictionary<string, double>> modifyChat(string jid, OrType<ChatModification.pin, ChatModification.mute> type, double durationMs);
         /// <summary>
         /// Modify a given chat (archive, pin etc.)
         /// </summary>
         /// <param name = "jid">
         /// the ID of the person/group you are modifiying
         /// </param>
-        async public Promise<Hashtable<String, double>> modifyChat(String jid, dynamic type);
-        async public Promise<Hashtable<String, double>> modifyChat(String jid, AAA___ keyof  typeof  ChatModification  ___AAA  type, dynamic arg = null)
+        async public Promise<Dictionary<string, double>> modifyChat(string jid, OrType<ChatModification, /*keyof typeof ChatModification*/
+        dynamic> type);
+        async public Promise<Dictionary<string, double>> modifyChat(string jid, /*keyof typeof ChatModification*/
+        dynamic type, OrType<double, bool> arg = null)
         {
             jid = whatsappID(jid);
             var chat = this.assertChatGet(jid);
-            Record<String, String> chatAttrs = new Record<String, String>()
-            {{"jid", jid}};
+            Record<string, string> chatAttrs = new Record<string, string>()
+            {
+                {
+                    "jid",
+                    jid
+                }
+            };
             if (type == ChatModification.mute && !arg)
             {
-                throw new BaileysError("duration must be set to the timestamp of the time of pinning/unpinning of the chat", new
-                {
-                status = 400
-                }
-
-                );
+                throw new BaileysError("duration must be set to the timestamp of the time of pinning/unpinning of the chat", new Dictionary<string, int>() { { "status", 400 } });
             }
 
             double durationMs = arg as double || 0;
@@ -499,17 +562,17 @@ namespace Bailey
                     chatAttrs.type = type;
                     chatAttrs.star = includeStarred ? "true" : "false";
                     index = await this.getChatIndex(jid);
-                    chatAttrs = new Record<String, String>();
+                    chatAttrs = new Record<string, string>();
                     AAA___ delete  chatAttrs . participant  ___AAA ;
                     break;
                 default:
                     chatAttrs.type = type;
                     index = await this.getChatIndex(jid);
-                    chatAttrs = new Record<String, String>();
+                    chatAttrs = new Record<string, string>();
                     break;
             }
 
-            var response = await this.setQuery(new Array<WANode>{new Array<WANode>{"chat", chatAttrs, null}}, new WATag{WAMetric.chat, WAFlag.ignore});
+            var response = await this.setQuery(new List<WANode> { new List<WANode> { "chat", chatAttrs, null } }, new WATag { WAMetric.chat, WAFlag.ignore });
             if (chat && response.status == 200)
             {
                 switch (type)
@@ -543,9 +606,7 @@ namespace Bailey
                                 chat[type] = chatAttrs[type] || "true";
                                 this.emit("chat-update", (jid: jid, [type]: chat[type]));
                             }
-                        }
-
-                        );
+                        });
                         break;
                 }
             }
@@ -553,14 +614,14 @@ namespace Bailey
             return response;
         }
 
-        protected async Promise<WAChatIndex> getChatIndex(String jid)
+        protected async Promise<WAChatIndex> getChatIndex(string jid)
         {
-            var chatAttrs = new Hashtable<String, dynamic>() as WAChatIndex;
+            var chatAttrs = new Dictionary<string, dynamic>() as WAChatIndex;
             var { messages: [msg] } = await this.loadMessages(jid, 1);
             if (msg)
             {
                 chatAttrs.index = msg.key.id;
-                chatAttrs.owner = msg.key.fromMe.toString() as dynamic;
+                chatAttrs.owner = msg.key.fromMe.toString() as string /*true*/;
             }
 
             if (isGroupID(jid))

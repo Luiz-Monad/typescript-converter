@@ -24,11 +24,10 @@ namespace Bailey
         /// <param name = "options">
         /// Extra options
         /// </param>
-        async public void sendMessage(String id, dynamic message, MessageType type, MessageOptions options = new MessageOptions())
+        async public void sendMessage(string id, OrType<string, WATextMessage, WALocationMessage, WAContactMessage, WAContactsArrayMessage, WAGroupInviteMessage, WAMediaUpload, WAListMessage, WAButtonsMessage> message, MessageType type, MessageOptions options = new MessageOptions())
         {
             var waMessage = await this.prepareMessage(id, message, type, options);
-            await this.relayWAMessage(waMessage, new Hashtable<String, bool>()
-            {{"waitForAck", options.waitForAck != false}});
+            await this.relayWAMessage(waMessage, new Dictionary<string, bool>() { { "waitForAck", options.waitForAck != false } });
             return waMessage;
         }
 
@@ -44,20 +43,18 @@ namespace Bailey
         /// <param name = "rows">
         /// the rows of sections list message
         /// </param>
-        async public void sendListMessage(String id, (String buttonText, String description, String title)button, dynamic rows = new dynamic())
+        async public void sendListMessage(string id, (string buttonText, string description, string title) button, dynamic rows = new dynamic())
         {
-            var messageList = WAMessageProto.Message.fromObject(new Hashtable<String, dynamic>()
-            {{"listMessage", WAMessageProto.ListMessage.fromObject((buttonText: button.buttonText, description: button.description, listType: 1, sections: new dynamic{(title: button.title, rows: new dynamic(rows))}))}});
+            var messageList = WAMessageProto.Message.fromObject(new Dictionary<string, dynamic>() { { "listMessage", WAMessageProto.ListMessage.fromObject((buttonText: button.buttonText, description: button.description, listType: 1, sections: new dynamic { (title: button.title, rows: new dynamic(rows)) })) } });
             var waMessageList = await this.prepareMessageFromContent(id, messageList, new MessageOptions());
-            await this.relayWAMessage(waMessageList, new Hashtable<String, bool>()
-            {{"waitForAck", true}});
+            await this.relayWAMessage(waMessageList, new Dictionary<string, bool>() { { "waitForAck", true } });
             return waMessageList;
         }
 
         /// <summary>
         /// Prepares a message for sending via sendWAMessage ()
         /// </summary>
-        async public void prepareMessage(String id, dynamic message, MessageType type, MessageOptions options = new MessageOptions())
+        async public void prepareMessage(string id, OrType<string, WATextMessage, WALocationMessage, WAContactMessage, WAContactsArrayMessage, WAGroupInviteMessage, WAMediaUpload, WAListMessage, WAButtonsMessage> message, MessageType type, MessageOptions options = new MessageOptions())
         {
             var content = await this.prepareMessageContent(message, type, options);
             var preparedMessage = this.prepareMessageFromContent(id, content, options);
@@ -74,14 +71,20 @@ namespace Bailey
         /// 0 to disable, enter any positive number to enable disappearing messages for the specified duration; 
         /// For the default see WA_DEFAULT_EPHEMERAL
         /// </param>
-        async public void toggleDisappearingMessages(String jid, double ephemeralExpiration = 0, Hashtable<String, bool> opts = new Hashtable<String, bool>()
-        {{"waitForAck", true}})
+        async public void toggleDisappearingMessages(string jid, double ephemeralExpiration = 0, Dictionary<string, bool> opts = new Dictionary<string, bool>()
+        {
+            {
+                "waitForAck",
+                true
+            }
+        }
+
+        )
         {
             if (isGroupID(jid))
             {
                 var tag = this.generateMessageTag(true);
-                await this.setQuery(new Array<WANode>{new Array<WANode>{"group", (id: tag, jid: jid, type: "prop", author: this.user.jid), new Array<dynamic>{new Array<dynamic>{"ephemeral", new Hashtable<String, dynamic>()
-                {{"value", ephemeralExpiration.toString()}}, null}}}}, new WATag{WAMetric.group, WAFlag.other}, tag);
+                await this.setQuery(new List<WANode> { new List<WANode> { "group", (id: tag, jid: jid, type: "prop", author: this.user.jid), new List<dynamic> { new List<dynamic> { "ephemeral", new Dictionary<string, dynamic>() { { "value", ephemeralExpiration.toString() } }, null } } } }, new WATag { WAMetric.group, WAFlag.other }, tag);
             }
             else
             {
@@ -93,7 +96,7 @@ namespace Bailey
         /// <summary>
         /// Prepares the message content
         /// </summary>
-        async public void prepareMessageContent(dynamic message, MessageType type, MessageOptions options)
+        async public void prepareMessageContent(OrType<string, WATextMessage, WALocationMessage, WAContactMessage, WAContactsArrayMessage, WAGroupInviteMessage, WAMediaUpload, WAListMessage, WAButtonsMessage> message, MessageType type, MessageOptions options)
         {
             WAMessageContent m = new WAMessageContent();
             switch (type)
@@ -101,9 +104,16 @@ namespace Bailey
                 case MessageType.text:
                 case MessageType.extendedText:
                     if (TypeOf(message) == "string")
-                        message = new Hashtable<String, dynamic>()
-                        {{"text", message}} as WATextMessage;
-                    if (AAA___ 'text' in  message  ___AAA )
+                        message = new Dictionary<string, OrType<string, WATextMessage, WALocationMessage, WAContactMessage, WAContactsArrayMessage, WAGroupInviteMessage, WAMediaUpload, WAListMessage, WAButtonsMessage>>()
+                        {
+                            {
+                                "text",
+                                message
+                            }
+                        }
+
+                        as WATextMessage;
+                    if (message.Contains("text"))
                     {
                         if (options.detectLinks != false && message.text.match(URL_REGEX))
                         {
@@ -160,11 +170,24 @@ namespace Bailey
         {
             ephemeralExpiration = ephemeralExpiration || 0;
             WAMessageContent content = new WAMessageContent()
-            {{"ephemeralMessage", new Hashtable<String, Hashtable<String, (dynamic type, dynamic ephemeralExpiration)>>()
-            {{"message", new
             {
-            protocolMessage = (type: WAMessageProto.ProtocolMessage.ProtocolMessageType.EPHEMERAL_SETTING, ephemeralExpiration: ephemeralExpiration)}
-            }}}};
+                {
+                    "ephemeralMessage",
+                    new Dictionary<string, Dictionary<string, (dynamic type, dynamic ephemeralExpiration)>>()
+                    {
+                        {
+                            "message",
+                            new Dictionary<string, (dynamic type, dynamic ephemeralExpiration)>()
+                            {
+                                {
+                                    "protocolMessage",
+                                    (type: WAMessageProto.ProtocolMessage.ProtocolMessageType.EPHEMERAL_SETTING, ephemeralExpiration: ephemeralExpiration)
+                                }
+                            }
+                        }
+                    }
+                }
+            };
             return WAMessageProto.Message.fromObject(content);
         }
 
@@ -201,7 +224,7 @@ namespace Bailey
             }
 
             var requiresDurationComputation = mediaType == MessageType.audio && !options.duration;
-            var requiresThumbnailComputation = (mediaType == MessageType.image || mediaType == MessageType.video) && !(AAA___ 'thumbnail' in  options  ___AAA );
+            var requiresThumbnailComputation = (mediaType == MessageType.image || mediaType == MessageType.video) && !(options.Contains("thumbnail"));
             var requiresOriginalForSomeProcessing = requiresDurationComputation || requiresThumbnailComputation;
             var {
             mediaKey,
@@ -226,21 +249,19 @@ namespace Bailey
                 }
                 catch (Exception error)
                 {
-                    this.logger.debug(new Hashtable<String, dynamic>()
-                    {{"error", error}}, "failed to obtain audio duration: " + error.message);
+                    this.logger.debug(new Dictionary<string, dynamic>() { { "error", error } }, "failed to obtain audio duration: " + error.message);
                 }
             }
 
             var json = await this.refreshMediaConn(options.forceNewMediaOptions);
-            String mediaUrl;
+            string mediaUrl;
             foreach (var host in json.hosts)
             {
                 var auth = encodeURIComponent(json.auth);
                 var url = $"https://{host.hostname}{MediaPathMap[mediaType]}/{fileEncSha256B64}?auth={auth}&token={fileEncSha256B64}";
                 try
                 {
-                    var {body: responseText} = await this.fetchRequest(url, "POST", createReadStream(encBodyPath), options.uploadAgent, new Hashtable<String, String>()
-                    {{"Content-Type", "application/octet-stream"}});
+                    var {body: responseText} = await this.fetchRequest(url, "POST", createReadStream(encBodyPath), options.uploadAgent, new Dictionary<string, string>() { { "Content_Type", "application/octet-stream" } });
                     var result = JSON.parse(responseText);
                     mediaUrl = result.url;
                     if (mediaUrl)
@@ -260,16 +281,21 @@ namespace Bailey
 
             if (!mediaUrl)
                 throw new Error("Media upload failed on all hosts");
-            await Promise.all(new Array<dynamic>{fs.unlink(encBodyPath), didSaveToTmpPath && bodyPath && fs.unlink(bodyPath)}.filter(Boolean));
-            var message = new Hashtable<String, dynamic>()
-            {{"[mediaType]", MessageTypeProto[mediaType].fromObject((url: mediaUrl, mediaKey: mediaKey, mimetype: options.mimetype, fileEncSha256: fileEncSha256, fileSha256: fileSha256, fileLength: fileLength, seconds: options.duration, fileName: options.filename || "file", gifPlayback: isGIF || undefined, caption: options.caption, ptt: options.ptt, viewOnce: options.viewOnce, isAnimated: options.isAnimated))}};
+            await Promise.all(new List<dynamic> { fs.unlink(encBodyPath), didSaveToTmpPath && bodyPath && fs.unlink(bodyPath) }.filter(Boolean));
+            var message = new Dictionary<string, dynamic>()
+            {
+                {
+                    "[mediaType]",
+                    MessageTypeProto[mediaType].fromObject((url: mediaUrl, mediaKey: mediaKey, mimetype: options.mimetype, fileEncSha256: fileEncSha256, fileSha256: fileSha256, fileLength: fileLength, seconds: options.duration, fileName: options.filename || "file", gifPlayback: isGIF || undefined, caption: options.caption, ptt: options.ptt, viewOnce: options.viewOnce, isAnimated: options.isAnimated))
+                }
+            };
             return WAMessageProto.Message.fromObject(message);
         }
 
         /// <summary>
         /// prepares a WAMessage for sending from the given content & options
         /// </summary>
-        public void prepareMessageFromContent(String id, WAMessageContent message, MessageOptions options)
+        public void prepareMessageFromContent(string id, WAMessageContent message, MessageOptions options)
         {
             if (!options.timestamp)
                 options.timestamp = new Date();
@@ -277,8 +303,18 @@ namespace Bailey
                 options.sendEphemeral = "chat";
             if (options.viewOnce)
                 message = new WAMessageContent()
-                {{"viewOnceMessage", new Hashtable<String, dynamic>()
-                {{"message", message}}}};
+                {
+                    {
+                        "viewOnceMessage",
+                        new Dictionary<string, dynamic>()
+                        {
+                            {
+                                "message",
+                                message
+                            }
+                        }
+                    }
+                };
             id = whatsappID(id);
             var key = Object.keys(message)[0];
             var timestamp = unixTimestampSeconds(options.timestamp);
@@ -288,7 +324,7 @@ namespace Bailey
             if (quoted)
             {
                 var participant = quoted.key.fromMe ? this.user.jid : (quoted.participant || quoted.key.participant || quoted.key.remoteJid);
-                message[key].contextInfo = message[key].contextInfo || new Hashtable<String, dynamic>();
+                message[key].contextInfo = message[key].contextInfo || new Dictionary<string, dynamic>();
                 message[key].contextInfo.participant = participant;
                 message[key].contextInfo.stanzaId = quoted.key.id;
                 message[key].contextInfo.quotedMessage = quoted.message;
@@ -306,10 +342,20 @@ namespace Bailey
             var chat = this.chats.get(id);
             if (((options.sendEphemeral == "chat" && chat.ephemeral) || options.sendEphemeral == true) && key != "protocolMessage" && key != "ephemeralMessage")
             {
-                message[key].contextInfo = (__spread__: (message[key].contextInfo || new Hashtable<String, dynamic>()), expiration: chat.ephemeral || WA_DEFAULT_EPHEMERAL, ephemeralSettingTimestamp: chat.eph_setting_ts);
+                message[key].contextInfo = (__spread__: (message[key].contextInfo || new Dictionary<string, dynamic>()), expiration: chat.ephemeral || WA_DEFAULT_EPHEMERAL, ephemeralSettingTimestamp: chat.eph_setting_ts);
                 message = new WAMessageContent()
-                {{"ephemeralMessage", new Hashtable<String, dynamic>()
-                {{"message", message}}}};
+                {
+                    {
+                        "ephemeralMessage",
+                        new Dictionary<string, dynamic>()
+                        {
+                            {
+                                "message",
+                                message
+                            }
+                        }
+                    }
+                };
             }
 
             message = WAMessageProto.Message.fromObject(message);
@@ -320,15 +366,34 @@ namespace Bailey
         /// <summary>
         /// Relay (send) a WAMessage; more advanced functionality to send a built WA Message, you may want to stick with sendMessage()
         /// </summary>
-        async public void relayWAMessage(WAMessage message, Hashtable<String, bool> { waitForAck } = new Hashtable<String, bool>()
-        {{"waitForAck", true}})
+        async public void relayWAMessage(WAMessage message, Dictionary<string, bool> { waitForAck } = new Dictionary<string, bool>()
         {
-            var json = new Array<String>{"action", (epoch: this.msgCount.toString(), type: "relay"), new Array<String>{new Array<dynamic>{"message", null, message}}};
+            {
+                "waitForAck",
+                true
+            }
+        }
+
+        )
+        {
+            var json = new List<string>
+            {
+                "action",
+                (epoch: this.msgCount.toString(), type: "relay"),
+                new List<string>
+                {
+                    new List<dynamic>
+                    {
+                        "message",
+                        null,
+                        message
+                    }
+                }
+            };
             var flag = message.key.remoteJid == this.user.jid ? WAFlag.acknowledge : WAFlag.ignore;
             var mID = message.key.id;
             message.status = WA_MESSAGE_STATUS_TYPE.PENDING;
-            var promise = this.query(new WAQuery()
-            {{"json", json}, {"binaryTags", new Array<WAMetric>{WAMetric.message, flag}}, {"tag", mID}, {"expect200", true}, {"requiresPhoneConnection", true}}).then(() => message.status = WA_MESSAGE_STATUS_TYPE.SERVER_ACK);
+            var promise = this.query(new WAQuery() { { "json", json }, { "binaryTags", new List<WAMetric> { WAMetric.message, flag } }, { "tag", mID }, { "expect200", true }, { "requiresPhoneConnection", true } }).then(() => message.status = WA_MESSAGE_STATUS_TYPE.SERVER_ACK);
             if (waitForAck)
             {
                 await promise;
@@ -338,11 +403,9 @@ namespace Bailey
                 var emitUpdate = (status) =>
                 {
                     message.status = status;
-                    this.emit("chat-update", (jid: message.key.remoteJid, messages: newMessagesDB(new Array<WAMessage>{message})));
-                }
-
-                ;
-                promise.then(() => emitUpdate(WA_MESSAGE_STATUS_TYPE.SERVER_ACK)).catch(() => emitUpdate(WA_MESSAGE_STATUS_TYPE.ERROR));
+                    this.emit("chat-update", (jid: message.key.remoteJid, messages: newMessagesDB(new List<WAMessage> { message })));
+                };
+                promise.then(() => emitUpdate(WA_MESSAGE_STATUS_TYPE.SERVER_ACK)).@catch(() => emitUpdate(WA_MESSAGE_STATUS_TYPE.ERROR));
             }
 
             await this.chatAddMessageAppropriate(message);
@@ -359,47 +422,44 @@ namespace Bailey
             var content = message.message.audioMessage || message.message.videoMessage || message.message.imageMessage || message.message.stickerMessage || message.message.documentMessage;
             if (!content)
                 throw new BaileysError($"given message {message.key.id} is not a media message", message);
-            var query = new Array<String>{"query", (type: "media", index: message.key.id, owner: message.key.fromMe ? "true" : "false", jid: message.key.remoteJid, epoch: this.msgCount.toString()), null};
-            var response = await this.query(new WAQuery()
-            {{"json", query}, {"binaryTags", new Array<WAMetric>{WAMetric.queryMedia, WAFlag.ignore}}, {"expect200", true}, {"requiresPhoneConnection", true}});
+            var query = new List<string>
+            {
+                "query",
+                (type: "media", index: message.key.id, owner: message.key.fromMe ? "true" : "false", jid: message.key.remoteJid, epoch: this.msgCount.toString()),
+                null
+            };
+            var response = await this.query(new WAQuery() { { "json", query }, { "binaryTags", new List<WAMetric> { WAMetric.queryMedia, WAFlag.ignore } }, { "expect200", true }, { "requiresPhoneConnection", true } });
             Object.keys(response[1]).forEach((key) => content[key] = response[1][key]);
         }
 
         async public Promise<Buffer> downloadMediaMessage(WAMessage message);
-        async public Promise<Buffer> downloadMediaMessage(WAMessage message, dynamic type);
-        async public Promise<Readable> downloadMediaMessage(WAMessage message, dynamic type);
+        async public Promise<Buffer> downloadMediaMessage(WAMessage message, string /*buffer*/ type);
+        async public Promise<Readable> downloadMediaMessage(WAMessage message, string /*stream*/ type);
         /// <summary>
         /// Securely downloads the media from the message. 
         /// Renews the download url automatically, if necessary.
         /// </summary>
-        async public void downloadMediaMessage(WAMessage message, dynamic type = "buffer")
+        async public void downloadMediaMessage(WAMessage message, string /*buffer*/ type = "buffer")
         {
             var mContent = message.message.ephemeralMessage.message || message.message;
             if (!mContent)
-                throw new BaileysError("No message present", new
-                {
-                status = 400
-                }
-
-                );
+                throw new BaileysError("No message present", new Dictionary<string, int>() { { "status", 400 } });
             var downloadMediaMessage = () =>
             {
                 var stream = await decryptMediaMessageBuffer(mContent);
                 if (type == "buffer")
                 {
-                    var buffer = Buffer.from(new Array<dynamic>());
+                    var buffer = Buffer.from(new dynamic());
                     foreach (var chunk in stream)
                     {
-                        buffer = Buffer.concat(new Array<dynamic>{buffer, chunk});
+                        buffer = Buffer.concat(new dynamic { buffer, chunk });
                     }
 
                     return buffer;
                 }
 
                 return stream;
-            }
-
-            ;
+            };
             try
             {
                 var buff = await downloadMediaMessage();
@@ -433,7 +493,7 @@ namespace Bailey
         /// <param name = "attachExtension">
         /// should the parsed extension be applied automatically to the file
         /// </param>
-        async public void downloadAndSaveMediaMessage(WAMessage message, String filename, bool attachExtension = true)
+        async public void downloadAndSaveMediaMessage(WAMessage message, string filename, bool attachExtension = true)
         {
             var extension = extensionForMediaMessage(message.message);
             var trueFileName = attachExtension ? (filename + "." + extension) : filename;
@@ -445,16 +505,27 @@ namespace Bailey
         /// <summary>
         /// Query a string to check if it has a url, if it does, return required extended text message
         /// </summary>
-        async public void generateLinkPreview(String text)
+        async public void generateLinkPreview(string text)
         {
-            var query = new Array<String>{"query", (type: "url", url: text, epoch: this.msgCount.toString()), null};
-            var response = await this.query(new WAQuery()
-            {{"json", query}, {"binaryTags", new Array<double>{26, WAFlag.ignore}}, {"expect200", true}, {"requiresPhoneConnection", false}});
+            var query = new List<string>
+            {
+                "query",
+                (type: "url", url: text, epoch: this.msgCount.toString()),
+                null
+            };
+            var response = await this.query(new WAQuery() { { "json", query }, { "binaryTags", new List<double> { 26, WAFlag.ignore } }, { "expect200", true }, { "requiresPhoneConnection", false } });
             if (response[1])
                 response[1].jpegThumbnail = response[2];
             var data = response[1] as WAUrlInfo;
-            var content = new Hashtable<String, dynamic>()
-            {{"text", text}} as WATextMessage;
+            var content = new Dictionary<string, dynamic>()
+            {
+                {
+                    "text",
+                    text
+                }
+            }
+
+            as WATextMessage;
             content.canonicalUrl = data["canonical-url"];
             content.matchedText = data["matched-text"];
             content.jpegThumbnail = data.jpegThumbnail;
@@ -477,8 +548,7 @@ namespace Bailey
 
         protected async void getNewMediaConn()
         {
-            var {media_conn} = await this.query(new WAQuery()
-            {{"json", new Array<String>{"query", "mediaConn"}}, {"requiresPhoneConnection", false}});
+            var {media_conn} = await this.query(new WAQuery() { { "json", new List<string> { "query", "mediaConn" } }, { "requiresPhoneConnection", false } });
             return media_conn as MediaConnInfo;
         }
     }

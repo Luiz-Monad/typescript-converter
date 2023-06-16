@@ -17,92 +17,54 @@ namespace Bailey
     using WAMessageKey = proto.IMessageKey;
     using WATextMessage = proto.ExtendedTextMessage;
     using WAContextInfo = proto.IContextInfo;
-    using WAGenericMediaMessage = dynamic;
-    using WAMediaUpload = dynamic;
-    using WAConnectionState = dynamic;
-    using AnyAuthenticationCredentials = dynamic;
-    using WAGroupParticipant = Combine<WAContact, (bool isAdmin, bool isSuperAdmin)>;
-    using WAContactUpdate = Combine<Partial<WAContact>, (String jid, String status)>;
-    using WAChatUpdate = Combine<Partial<WAChat>, (String jid, bool hasNewMessage)>;
-    using WATag = Array<Object>;
-    using WAParticipantAction = dynamic;
-    using BaileysEvent = dynamic;
+    using WAGenericMediaMessage = OrType<proto.IVideoMessage, proto.IImageMessage, proto.IAudioMessage, proto.IDocumentMessage, proto.IStickerMessage>;
+    using WAInitResponse = (string @ref, double ttl, double /*200*/ status);
+    using WABusinessCategories = (string id, string localized_display_name);
+    using WABusinessHours = (string timezone, List<WABusinessHoursConfig> config, List<WABusinessHoursConfig> business_config);
+    using WABusinessHoursConfig = (string day_of_week, string mode, double open_time, double close_time);
+    using WAMediaUpload = OrType<Buffer, Dictionary<string, OrType<URL, string>>>;
+    using WALoadChatOptions = (string searchString, Func<WAChat, bool> custom);
+    using WAConnectOptions = (double maxIdleTimeMs, double maxRetries, double phoneResponseTime, double connectCooldownMs, Agent agent, Agent fetchAgent, bool alwaysUseTakeover, bool queryChatsTillReceived, double maxQueryResponseTime, bool logQR);
+    using WAConnectionState = string /*open*/;
+    using AnyAuthenticationCredentials = OrType<AuthenticationCredentialsBrowser, AuthenticationCredentialsBase64, AuthenticationCredentials>;
+    using WAGroupParticipant = AndType<WAContact, (bool isAdmin, bool isSuperAdmin)>;
+    using WAContactUpdate = AndType<Partial<WAContact>, (string jid, string status)>;
+    using WAChatIndex = (string index, string /*true*/ owner, string participant);
+    using WAChatUpdate = AndType<Partial<WAChat>, (string jid, bool hasNewMessage)>;
+    using WATag = List<object>;
+    using WAParticipantAction = string /*add*/;
+    using BaileysEvent = string /*open*/;
 
-    (String @ref, double ttl, dynamic status)WAInitResponse public interface WABusinessProfile
+    public interface WABusinessProfile
     {
-        String description
-        {
-            get;
-            set;
-        }
+        string description { get; set; }
 
-        String email
-        {
-            get;
-            set;
-        }
+        string email { get; set; }
 
-        WABusinessHours business_hours
-        {
-            get;
-            set;
-        }
+        WABusinessHours business_hours { get; set; }
 
-        Array<String> website
-        {
-            get;
-            set;
-        }
+        List<string> website { get; set; }
 
-        Array<WABusinessCategories> categories
-        {
-            get;
-            set;
-        }
+        List<WABusinessCategories> categories { get; set; }
 
-        String wid
-        {
-            get;
-            set;
-        }
+        string wid { get; set; }
     }
 
-    (String id, String localized_display_name)WABusinessCategories(String timezone, Array<WABusinessHoursConfig> config, Array<WABusinessHoursConfig> business_config)WABusinessHours(String day_of_week, String mode, double open_time, double close_time)WABusinessHoursConfig public interface WALocationMessage
+    public interface WALocationMessage
     {
-        double degreesLatitude
-        {
-            get;
-            set;
-        }
+        double degreesLatitude { get; set; }
 
-        double degreesLongitude
-        {
-            get;
-            set;
-        }
+        double degreesLongitude { get; set; }
 
-        String address
-        {
-            get;
-            set;
-        }
+        string address { get; set; }
     }
 
     public class BaileysError : Error
     {
-        public double status
-        {
-            get;
-            set;
-        }
+        public double status { get; set; }
+        public dynamic context { get; set; }
 
-        public dynamic context
-        {
-            get;
-            set;
-        }
-
-        public BaileysError(String message, dynamic context, String stack = null): base(message)
+        public BaileysError(string message, dynamic context, string stack = null) : base(message)
         {
             this.name = "BaileysError";
             this.status = context.status;
@@ -116,65 +78,25 @@ namespace Bailey
 
     public interface WAQuery
     {
-        dynamic json
-        {
-            get;
-            set;
-        }
+        OrType<List<dynamic>, WANode> json { get; set; }
 
-        WATag binaryTags
-        {
-            get;
-            set;
-        }
+        WATag binaryTags { get; set; }
 
-        double timeoutMs
-        {
-            get;
-            set;
-        }
+        double timeoutMs { get; set; }
 
-        String tag
-        {
-            get;
-            set;
-        }
+        string tag { get; set; }
 
-        bool expect200
-        {
-            get;
-            set;
-        }
+        bool expect200 { get; set; }
 
-        bool waitForOpen
-        {
-            get;
-            set;
-        }
+        bool waitForOpen { get; set; }
 
-        bool longTag
-        {
-            get;
-            set;
-        }
+        bool longTag { get; set; }
 
-        bool requiresPhoneConnection
-        {
-            get;
-            set;
-        }
+        bool requiresPhoneConnection { get; set; }
 
-        bool startDebouncedTimeout
-        {
-            get;
-            set;
-        }
+        bool startDebouncedTimeout { get; set; }
 
-        double maxRetries
-        {
-            get;
-            set;
-        }
+        double maxRetries { get; set; }
     }
 
     public enum ReconnectMode
@@ -193,7 +115,6 @@ namespace Bailey
         onAllErrors = 2
     }
 
-    (String searchString, AAA___ (c: WAChat) => boolean ___AAA custom)WALoadChatOptions(double maxIdleTimeMs, double maxRetries, double phoneResponseTime, double connectCooldownMs, Agent agent, Agent fetchAgent, bool alwaysUseTakeover, bool queryChatsTillReceived, double maxQueryResponseTime, bool logQR)WAConnectOptions 
     /// <summary>
     /// Types of Disconnect Reasons
     /// </summary>
@@ -235,437 +156,189 @@ namespace Bailey
 
     public interface MediaConnInfo
     {
-        String auth
-        {
-            get;
-            set;
-        }
+        string auth { get; set; }
 
-        double ttl
-        {
-            get;
-            set;
-        }
+        double ttl { get; set; }
 
-        Array<Hashtable<String, String>> hosts
-        {
-            get;
-            set;
-        }
+        List<Dictionary<string, string>> hosts { get; set; }
 
-        Date fetchDate
-        {
-            get;
-            set;
-        }
+        Date fetchDate { get; set; }
     }
 
     public interface AuthenticationCredentials
     {
-        String clientID
-        {
-            get;
-            set;
-        }
+        string clientID { get; set; }
 
-        String serverToken
-        {
-            get;
-            set;
-        }
+        string serverToken { get; set; }
 
-        String clientToken
-        {
-            get;
-            set;
-        }
+        string clientToken { get; set; }
 
-        Buffer encKey
-        {
-            get;
-            set;
-        }
+        Buffer encKey { get; set; }
 
-        Buffer macKey
-        {
-            get;
-            set;
-        }
+        Buffer macKey { get; set; }
     }
 
     public interface AuthenticationCredentialsBase64
     {
-        String clientID
-        {
-            get;
-            set;
-        }
+        string clientID { get; set; }
 
-        String serverToken
-        {
-            get;
-            set;
-        }
+        string serverToken { get; set; }
 
-        String clientToken
-        {
-            get;
-            set;
-        }
+        string clientToken { get; set; }
 
-        String encKey
-        {
-            get;
-            set;
-        }
+        string encKey { get; set; }
 
-        String macKey
-        {
-            get;
-            set;
-        }
+        string macKey { get; set; }
     }
 
     public interface AuthenticationCredentialsBrowser
     {
-        String WABrowserId
-        {
-            get;
-            set;
-        }
+        string WABrowserId { get; set; }
 
-        dynamic WASecretBundle
-        {
-            get;
-            set;
-        }
+        OrType<(string encKey, string macKey), string> WASecretBundle { get; set; }
 
-        String WAToken1
-        {
-            get;
-            set;
-        }
+        string WAToken1 { get; set; }
 
-        String WAToken2
-        {
-            get;
-            set;
-        }
+        string WAToken2 { get; set; }
     }
 
     public interface WAGroupCreateResponse
     {
-        double status
-        {
-            get;
-            set;
-        }
+        double status { get; set; }
 
-        String gid
-        {
-            get;
-            set;
-        }
+        string gid { get; set; }
 
-        Array<Hashtable<String, dynamic>> participants
-        {
-            get;
-            set;
-        }
+        List<Dictionary<string, dynamic>> participants { get; set; }
     }
 
     public interface WAGroupMetadata
     {
-        String id
-        {
-            get;
-            set;
-        }
+        string id { get; set; }
 
-        String owner
-        {
-            get;
-            set;
-        }
+        string owner { get; set; }
 
-        String subject
-        {
-            get;
-            set;
-        }
+        string subject { get; set; }
 
-        double creation
-        {
-            get;
-            set;
-        }
+        double creation { get; set; }
 
-        String desc
-        {
-            get;
-            set;
-        }
+        string desc { get; set; }
 
-        String descOwner
-        {
-            get;
-            set;
-        }
+        string descOwner { get; set; }
 
-        String descId
-        {
-            get;
-            set;
-        }
+        string descId { get; set; }
 
         /// <summary>
         /// is set when the group only allows admins to change group settings
         /// </summary>
-        dynamic restrict
-        {
-            get;
-            set;
-        }
+        string /*true*/ restrict { get; set; }
 
         /// <summary>
         /// is set when the group only allows admins to write messages
         /// </summary>
-        dynamic announce
-        {
-            get;
-            set;
-        }
+        string /*true*/ announce { get; set; }
 
-        Array<WAGroupParticipant> participants
-        {
-            get;
-            set;
-        }
+        List<WAGroupParticipant> participants { get; set; }
     }
 
     public interface WAGroupModification
     {
-        double status
-        {
-            get;
-            set;
-        }
+        double status { get; set; }
 
-        Hashtable<String, dynamic> participants
-        {
-            get;
-            set;
-        }
+        Dictionary<string, dynamic> participants { get; set; }
     }
 
     public interface WAPresenceData
     {
-        Presence lastKnownPresence
-        {
-            get;
-            set;
-        }
+        Presence lastKnownPresence { get; set; }
 
-        double lastSeen
-        {
-            get;
-            set;
-        }
+        double lastSeen { get; set; }
 
-        String name
-        {
-            get;
-            set;
-        }
+        string name { get; set; }
     }
 
     public interface WAContact
     {
-        String verify
-        {
-            get;
-            set;
-        }
+        string verify { get; set; }
 
         /// <summary>
         /// name of the contact, the contact has set on their own on WA
         /// </summary>
-        String notify
-        {
-            get;
-            set;
-        }
+        string notify { get; set; }
 
-        String jid
-        {
-            get;
-            set;
-        }
+        string jid { get; set; }
 
         /// <summary>
         /// I have no idea
         /// </summary>
-        String vname
-        {
-            get;
-            set;
-        }
+        string vname { get; set; }
 
         /// <summary>
         /// name of the contact, you have saved on your WA
         /// </summary>
-        String name
-        {
-            get;
-            set;
-        }
+        string name { get; set; }
 
-        String index
-        {
-            get;
-            set;
-        }
+        string index { get; set; }
 
         /// <summary>
         /// short name for the contact
         /// </summary>
-        String short
-        {
-            get;
-            set;
-        }
+        string @short { get; set; }
 
-        String imgUrl
-        {
-            get;
-            set;
-        }
+        string imgUrl { get; set; }
     }
 
     public interface WAUser : WAContact
     {
-        dynamic phone
-        {
-            get;
-            set;
-        }
+        dynamic phone { get; set; }
     }
 
     public interface WAChat
     {
-        String jid
-        {
-            get;
-            set;
-        }
+        string jid { get; set; }
 
-        double t
-        {
-            get;
-            set;
-        }
+        double t { get; set; }
 
         /// <summary>
         /// number of unread messages, is < 0 if the chat is manually marked unread
         /// </summary>
-        double count
-        {
-            get;
-            set;
-        }
+        double count { get; set; }
 
-        dynamic archive
-        {
-            get;
-            set;
-        }
+        string /*true*/ archive { get; set; }
 
-        dynamic clear
-        {
-            get;
-            set;
-        }
+        string /*true*/ clear { get; set; }
 
-        dynamic read_only
-        {
-            get;
-            set;
-        }
+        string /*true*/ read_only { get; set; }
 
-        String mute
-        {
-            get;
-            set;
-        }
+        string mute { get; set; }
 
-        String pin
-        {
-            get;
-            set;
-        }
+        string pin { get; set; }
 
-        dynamic spam
-        {
-            get;
-            set;
-        }
+        string /*false*/ spam { get; set; }
 
-        String modify_tag
-        {
-            get;
-            set;
-        }
+        string modify_tag { get; set; }
 
-        String name
-        {
-            get;
-            set;
-        }
+        string name { get; set; }
 
         /// <summary>
         /// when ephemeral messages were toggled on
         /// </summary>
-        String eph_setting_ts
-        {
-            get;
-            set;
-        }
+        string eph_setting_ts { get; set; }
 
         /// <summary>
         /// how long each message lasts for
         /// </summary>
-        String ephemeral
-        {
-            get;
-            set;
-        }
+        string ephemeral { get; set; }
 
-        KeyedDB<WAMessage, String> messages
-        {
-            get;
-            set;
-        }
+        KeyedDB<WAMessage, string> messages { get; set; }
 
-        String imgUrl
-        {
-            get;
-            set;
-        }
+        string imgUrl { get; set; }
 
-        Hashtable<String, WAPresenceData> presences
-        {
-            get;
-            set;
-        }
+        Dictionary<string, WAPresenceData> presences { get; set; }
 
-        WAGroupMetadata metadata
-        {
-            get;
-            set;
-        }
+        WAGroupMetadata metadata { get; set; }
     }
 
-    (String index, dynamic owner, String participant)WAChatIndex public enum WAMetric
+    public enum WAMetric
     {
         debugLog = 1,
         queryResume = 2,
@@ -776,296 +449,152 @@ namespace Bailey
         /// <summary>
         /// the message you want to quote
         /// </summary>
-        WAMessage quoted
-        {
-            get;
-            set;
-        }
+        WAMessage quoted { get; set; }
 
         /// <summary>
         /// some random context info (can show a forwarded message with this too)
         /// </summary>
-        WAContextInfo contextInfo
-        {
-            get;
-            set;
-        }
+        WAContextInfo contextInfo { get; set; }
 
         /// <summary>
         /// optional, if you want to manually set the timestamp of the message
         /// </summary>
-        Date timestamp
-        {
-            get;
-            set;
-        }
+        Date timestamp { get; set; }
 
         /// <summary>
         /// (for media messages) the caption to send with the media (cannot be sent with stickers though)
         /// </summary>
-        String caption
-        {
-            get;
-            set;
-        }
+        string caption { get; set; }
 
         /// <summary>
         /// For location & media messages -- has to be a base 64 encoded JPEG if you want to send a custom thumb, 
         /// or set to null if you don't want to send a thumbnail.
         /// Do not enter this field if you want to automatically generate a thumb
         /// </summary>
-        String thumbnail
-        {
-            get;
-            set;
-        }
+        string thumbnail { get; set; }
 
         /// <summary>
         /// (for media messages) specify the type of media (optional for all media types except documents)
         /// </summary>
-        dynamic mimetype
-        {
-            get;
-            set;
-        }
+        OrType<Mimetype, string> mimetype { get; set; }
 
         /// <summary>
         /// (for media messages) file name for the media
         /// </summary>
-        String filename
-        {
-            get;
-            set;
-        }
+        string filename { get; set; }
 
         /// <summary>
         /// For audio messages, if set to true, will send as a `voice note`
         /// </summary>
-        bool ptt
-        {
-            get;
-            set;
-        }
+        bool ptt { get; set; }
 
         /// <summary>
         /// For image or video messages, if set to true, will send as a `viewOnceMessage`
         /// </summary>
-        bool viewOnce
-        {
-            get;
-            set;
-        }
+        bool viewOnce { get; set; }
 
         /// <summary>
         /// Optional agent for media uploads
         /// </summary>
-        Agent uploadAgent
-        {
-            get;
-            set;
-        }
+        Agent uploadAgent { get; set; }
 
         /// <summary>
         /// If set to true (default), automatically detects if you're sending a link & attaches the preview
         /// </summary>
-        bool detectLinks
-        {
-            get;
-            set;
-        }
+        bool detectLinks { get; set; }
 
         /// <summary>
         /// Optionally specify the duration of the media (audio/video) in seconds
         /// </summary>
-        double duration
-        {
-            get;
-            set;
-        }
+        double duration { get; set; }
 
         /// <summary>
         /// Fetches new media options for every media file
         /// </summary>
-        bool forceNewMediaOptions
-        {
-            get;
-            set;
-        }
+        bool forceNewMediaOptions { get; set; }
 
         /// <summary>
         /// Wait for the message to be sent to the server (default true)
         /// </summary>
-        bool waitForAck
-        {
-            get;
-            set;
-        }
+        bool waitForAck { get; set; }
 
         /// <summary>
         /// Should it send as a disappearing messages. 
         /// By default 'chat' -- which follows the setting of the chat
         /// </summary>
-        dynamic sendEphemeral
-        {
-            get;
-            set;
-        }
+        OrType<string /*chat*/, bool> sendEphemeral { get; set; }
 
         /// <summary>
         /// Force message id
         /// </summary>
-        String messageId
-        {
-            get;
-            set;
-        }
+        string messageId { get; set; }
 
         /// <summary>
         /// For sticker messages, if set to true, will considered as animated sticker
         /// </summary>
-        bool isAnimated
-        {
-            get;
-            set;
-        }
+        bool isAnimated { get; set; }
     }
 
     public interface WABroadcastListInfo
     {
-        double status
-        {
-            get;
-            set;
-        }
+        double status { get; set; }
 
-        String name
-        {
-            get;
-            set;
-        }
+        string name { get; set; }
 
-        Array<Hashtable<String, String>> recipients
-        {
-            get;
-            set;
-        }
+        List<Dictionary<string, string>> recipients { get; set; }
     }
 
     public interface WAUrlInfo
     {
-        String canonical-url
-        {
-            get;
-            set;
-        }
+        string canonical_url { get; set; }
 
-        String matched-text
-        {
-            get;
-            set;
-        }
+        string matched_text { get; set; }
 
-        String title
-        {
-            get;
-            set;
-        }
+        string title { get; set; }
 
-        String description
-        {
-            get;
-            set;
-        }
+        string description { get; set; }
 
-        Buffer jpegThumbnail
-        {
-            get;
-            set;
-        }
+        Buffer jpegThumbnail { get; set; }
     }
 
     public interface WAProfilePictureChange
     {
-        double status
-        {
-            get;
-            set;
-        }
+        double status { get; set; }
 
-        String tag
-        {
-            get;
-            set;
-        }
+        string tag { get; set; }
 
-        String eurl
-        {
-            get;
-            set;
-        }
+        string eurl { get; set; }
     }
 
     public interface MessageInfo
     {
-        Array<(String jid, String t)> reads
-        {
-            get;
-            set;
-        }
+        List<(string jid, string t)> reads { get; set; }
 
-        Array<(String jid, String t)> deliveries
-        {
-            get;
-            set;
-        }
+        List<(string jid, string t)> deliveries { get; set; }
     }
 
     public interface WAMessageStatusUpdate
     {
-        String from
-        {
-            get;
-            set;
-        }
+        string from { get; set; }
 
-        String to
-        {
-            get;
-            set;
-        }
+        string to { get; set; }
 
         /// <summary>
         /// Which participant caused the update (only for groups)
         /// </summary>
-        String participant
-        {
-            get;
-            set;
-        }
+        string participant { get; set; }
 
-        Date timestamp
-        {
-            get;
-            set;
-        }
+        Date timestamp { get; set; }
 
         /// <summary>
         /// Message IDs read/delivered
         /// </summary>
-        Array<String> ids
-        {
-            get;
-            set;
-        }
+        List<string> ids { get; set; }
 
         /// <summary>
         /// Status of the Message IDs
         /// </summary>
-        WA_MESSAGE_STATUS_TYPE type
-        {
-            get;
-            set;
-        }
+        WA_MESSAGE_STATUS_TYPE type { get; set; }
     }
 
     public interface WAOpenResult
@@ -1073,29 +602,13 @@ namespace Bailey
         /// <summary>
         /// Was this connection opened via a QR scan
         /// </summary>
-        dynamic newConnection
-        {
-            get;
-            set;
-        }
+        bool /*true*/ newConnection { get; set; }
 
-        WAUser user
-        {
-            get;
-            set;
-        }
+        WAUser user { get; set; }
 
-        dynamic isNewUser
-        {
-            get;
-            set;
-        }
+        bool /*true*/ isNewUser { get; set; }
 
-        AuthenticationCredentials auth
-        {
-            get;
-            set;
-        }
+        AuthenticationCredentials auth { get; set; }
     }
 
     public enum GroupSettingChange
@@ -1106,49 +619,21 @@ namespace Bailey
 
     public interface PresenceUpdate
     {
-        String id
-        {
-            get;
-            set;
-        }
+        string id { get; set; }
 
-        String participant
-        {
-            get;
-            set;
-        }
+        string participant { get; set; }
 
-        String t
-        {
-            get;
-            set;
-        }
+        string t { get; set; }
 
-        Presence type
-        {
-            get;
-            set;
-        }
+        Presence type { get; set; }
 
-        bool deny
-        {
-            get;
-            set;
-        }
+        bool deny { get; set; }
     }
 
     public interface BlocklistUpdate
     {
-        Array<String> added
-        {
-            get;
-            set;
-        }
+        List<string> added { get; set; }
 
-        Array<String> removed
-        {
-            get;
-            set;
-        }
+        List<string> removed { get; set; }
     }
 }
