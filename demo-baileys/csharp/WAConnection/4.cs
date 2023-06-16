@@ -93,7 +93,7 @@ namespace Bailey
                             AAA___ delete  chat . metadata  ___AAA ;
                             AAA___ // remove group metadata as that may have changed; TODO, write better mechanism for this
                             delete  changes . messages  ___AAA ;
-                            updatedChats.push((__spread__: changes, jid: chat.jid));
+                            updatedChats.push((new Dictionary<string, dynamic>() { { "jid", chat.jid } }).Spread(changes));
                         }
                     }
                 });
@@ -116,7 +116,7 @@ namespace Bailey
                         {
                             var message = chat.messages.get(lastMessages[jid]);
                             var remainingMessages = chat.messages.paginatedByValue(message, this.maxCachedMessages, undefined, "after");
-                            chat.messages = newMessagesDB(new dynamic { message, AAA___.. . remainingMessages  ___AAA});
+                            chat.messages = newMessagesDB((new dynamic { message }).Spread(remainingMessages));
                             return (jid: jid, count: chat.messages.length);
                         }
                     }
@@ -166,7 +166,15 @@ namespace Bailey
 
                             if (chat.messages.upsert(message).length > 0)
                             {
-                                overlaps[jid] = (__spread__: (overlaps[jid] || new Dictionary<string, bool>() { { "requiresOverlap", true } }), didOverlap: true);
+                                overlaps[jid] = (new (bool requiresOverlap, bool didOverlap)()
+                                {
+                                    {
+                                        "didOverlap",
+                                        true
+                                    }
+                                }
+
+                                ).Spread((overlaps[jid] || new Dictionary<string, bool>() { { "requiresOverlap", true } }));
                             }
 
                             updates[jid] = updates[jid] || newMessagesDB();
@@ -202,12 +210,12 @@ namespace Bailey
                         var changes = shallowChanges(presentContact, contact, new Dictionary<string, bool>() { { "lookForDeletedKeys", false } });
                         if (changes && Object.keys(changes).length > 0)
                         {
-                            updatedContacts.push((__spread__: changes, jid: contact.jid));
+                            updatedContacts.push((new Dictionary<string, dynamic>() { { "jid", contact.jid } }).Spread(changes));
                         }
                     }
                     else
                         updatedContacts.push(contact);
-                    contacts[contact.jid] = new WAContact();
+                    contacts[contact.jid] = (new WAContact()).Spread((presentContact || new Dictionary<string, dynamic>()), contact);
                 });
                 var updatedChats = new List<dynamic>();
                 this.chats.all().forEach((c) =>
@@ -248,7 +256,7 @@ namespace Bailey
                             emitGroupParticipantsUpdate("demote");
                             break;
                         case "desc_add":
-                            emitGroupUpdate((__spread__: data[2], descOwner: data[1]));
+                            emitGroupUpdate((new Dictionary<string, dynamic>() { { "descOwner", data[1] } }).Spread(data[2]));
                             break;
                         default:
                             this.logger.debug(new Dictionary<string, bool>() { { "unhandled", true } }, json);
@@ -464,7 +472,7 @@ namespace Bailey
             if (chat && jid.endsWith("@s.whatsapp.net"))
             {
                 chat.presences = chat.presences || new Dictionary<string, dynamic>();
-                var presence = new AAA___ ___AAA () as WAPresenceData;
+                var presence = (new Dictionary<string, object>()).Spread((chat.presences[jid] || new Dictionary<string, dynamic>())) as WAPresenceData;
                 if (update.t)
                     presence.lastSeen = +update.t;
                 else if (update.type == Presence.unavailable && (presence.lastKnownPresence == Presence.available || presence.lastKnownPresence == Presence.composing))
@@ -494,7 +502,7 @@ namespace Bailey
         /// </summary>
         protected void chatAdd(string jid, string name = null, Partial<WAChat> properties = new Partial<WAChat>())
         {
-            WAChat chat = new WAChat()
+            WAChat chat = (new WAChat()
             {
                 {
                     "jid",
@@ -516,7 +524,9 @@ namespace Bailey
                     "count",
                     0
                 }
-            };
+            }
+
+            ).Spread((properties || new Dictionary<string, dynamic>()));
             if (this.chats.insertIfAbsent(chat).length)
             {
                 this.emit("chat-new", chat);
@@ -747,7 +757,7 @@ namespace Bailey
                 switch (action)
                 {
                     case "add":
-                        participants.forEach((jid) => (meta.participants.push((__spread__: this.contactAddOrGet(jid), isAdmin: false, isSuperAdmin: false))));
+                        participants.forEach((jid) => (meta.participants.push(((isAdmin: false, isSuperAdmin: false)).Spread(this.contactAddOrGet(jid)))));
                         break;
                     case "remove":
                         meta.participants = meta.participants.filter((p) => !participants.includes(p.jid));
@@ -771,7 +781,7 @@ namespace Bailey
             var chat = this.chats.get(jid);
             if (chat && chat.metadata)
                 Object.assign(chat.metadata, update);
-            this.emit("group-update", new List<dynamic>() { { "jid", jid } });
+            this.emit("group-update", (new List<dynamic>() { { "jid", jid } }).Spread(update));
         };
         protected dynamic chatUpdateTime = (chat, stamp) => this.chats.update(chat.jid, (c) => c.t = stamp);
 

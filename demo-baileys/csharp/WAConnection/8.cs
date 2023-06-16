@@ -14,7 +14,7 @@ namespace Bailey
             this.fetchGroupMetadataFromWA = (jid) =>
             {
                 var metadata = await this.query(new WAQuery() { { "json", new List<string> { "query", "GroupMetadata", jid } }, { "expect200", true } });
-                metadata.participants = metadata.participants.map((p) => ((__spread__: this.contactAddOrGet(p.id), __spread__: p)));
+                metadata.participants = metadata.participants.map((p) => ((new Dictionary<string, object>()).Spread(this.contactAddOrGet(p.id), p)));
                 return metadata as WAGroupMetadata;
             };
             this.groupMetadataMinimal = (jid) =>
@@ -30,7 +30,7 @@ namespace Bailey
                 var creatorDesc = json[1];
                 var participants = json[2] ? json[2].filter((item) => item[0] == "participant") : new List<dynamic>();
                 var description = json[2] ? json[2].find((item) => item[0] == "description") : null;
-                return (id: jid, owner: creatorDesc.creator, creator: creatorDesc.creator, creation: parseInt(creatorDesc.create), subject: null, desc: description && description[2].toString("utf-8"), participants: participants.map((item) => ((__spread__: this.contactAddOrGet(item[1].jid), isAdmin: item[1].type == "admin")))) as WAGroupMetadata;
+                return (id: jid, owner: creatorDesc.creator, creator: creatorDesc.creator, creation: parseInt(creatorDesc.create), subject: null, desc: description && description[2].toString("utf-8"), participants: participants.map((item) => ((new Dictionary<string, bool>() { { "isAdmin", item[1].type == "admin" } }).Spread(this.contactAddOrGet(item[1].jid))))) as WAGroupMetadata;
             };
             this.groupCreate = (title, participants) =>
             {

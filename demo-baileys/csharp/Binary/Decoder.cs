@@ -223,7 +223,11 @@ namespace Bailey
 
         public void readList(double tag)
         {
-            var arr = new Array(new Array(this.readListSize(tag)));
+            var arr = (new Array
+            {
+            }
+
+            ).Spread(new Array(this.readListSize(tag)));
             return arr.map(() => this.readNode());
         }
 

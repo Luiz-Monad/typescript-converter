@@ -45,7 +45,7 @@ namespace Bailey
         /// </param>
         async public void sendListMessage(string id, (string buttonText, string description, string title) button, dynamic rows = new dynamic())
         {
-            var messageList = WAMessageProto.Message.fromObject(new Dictionary<string, dynamic>() { { "listMessage", WAMessageProto.ListMessage.fromObject((buttonText: button.buttonText, description: button.description, listType: 1, sections: new dynamic { (title: button.title, rows: new dynamic(rows)) })) } });
+            var messageList = WAMessageProto.Message.fromObject(new Dictionary<string, dynamic>() { { "listMessage", WAMessageProto.ListMessage.fromObject((buttonText: button.buttonText, description: button.description, listType: 1, sections: new dynamic { (title: button.title, rows: (new dynamic { }).Spread(rows)) })) } });
             var waMessageList = await this.prepareMessageFromContent(id, messageList, new MessageOptions());
             await this.relayWAMessage(waMessageList, new Dictionary<string, bool>() { { "waitForAck", true } });
             return waMessageList;
@@ -342,7 +342,7 @@ namespace Bailey
             var chat = this.chats.get(id);
             if (((options.sendEphemeral == "chat" && chat.ephemeral) || options.sendEphemeral == true) && key != "protocolMessage" && key != "ephemeralMessage")
             {
-                message[key].contextInfo = (__spread__: (message[key].contextInfo || new Dictionary<string, dynamic>()), expiration: chat.ephemeral || WA_DEFAULT_EPHEMERAL, ephemeralSettingTimestamp: chat.eph_setting_ts);
+                message[key].contextInfo = ((expiration: chat.ephemeral || WA_DEFAULT_EPHEMERAL, ephemeralSettingTimestamp: chat.eph_setting_ts)).Spread((message[key].contextInfo || new Dictionary<string, dynamic>()));
                 message = new WAMessageContent()
                 {
                     {

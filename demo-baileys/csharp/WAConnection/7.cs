@@ -76,7 +76,7 @@ namespace Bailey
             if (type == "unread" || chat.count != 0)
             {
                 var idx = await this.getChatIndex(jid);
-                await this.setQuery(new List<WANode> { new List<WANode> { "read", (jid: jid, count: count, __spread__: idx, participant: undefined), null } }, new WATag { WAMetric.read, WAFlag.ignore });
+                await this.setQuery(new List<WANode> { new List<WANode> { "read", ((jid: jid, count: count, participant: undefined)).Spread(idx), null } }, new WATag { WAMetric.read, WAFlag.ignore });
             }
 
             chat.count = type == "unread" ? -1 : 0;
@@ -562,13 +562,13 @@ namespace Bailey
                     chatAttrs.type = type;
                     chatAttrs.star = includeStarred ? "true" : "false";
                     index = await this.getChatIndex(jid);
-                    chatAttrs = new Record<string, string>();
+                    chatAttrs = (new Record<string, string>()).Spread(chatAttrs, index);
                     AAA___ delete  chatAttrs . participant  ___AAA ;
                     break;
                 default:
                     chatAttrs.type = type;
                     index = await this.getChatIndex(jid);
-                    chatAttrs = new Record<string, string>();
+                    chatAttrs = (new Record<string, string>()).Spread(chatAttrs, index);
                     break;
             }
 

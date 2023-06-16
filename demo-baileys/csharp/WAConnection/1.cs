@@ -131,24 +131,28 @@ namespace Bailey
             {
                 if (json.clientToken && json.clientToken != this.authInfo.clientToken)
                 {
-                    this.authInfo = new AuthenticationCredentials()
+                    this.authInfo = (new AuthenticationCredentials()
                     {
                         {
                             "clientToken",
                             json.clientToken
                         }
-                    };
+                    }
+
+                    ).Spread(this.authInfo);
                 }
 
                 if (json.serverToken && json.serverToken != this.authInfo.serverToken)
                 {
-                    this.authInfo = new AuthenticationCredentials()
+                    this.authInfo = (new AuthenticationCredentials()
                     {
                         {
                             "serverToken",
                             json.serverToken
                         }
-                    };
+                    }
+
+                    ).Spread(this.authInfo);
                 }
 
                 return onValidationSuccess();

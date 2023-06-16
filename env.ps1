@@ -1,5 +1,6 @@
 
 function normalize($path) {
+    if (-not $path) { return $null }
     [System.IO.Path]::GetFullPath($path).TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 }
 

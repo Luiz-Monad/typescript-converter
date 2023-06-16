@@ -77,7 +77,15 @@ namespace Bailey
             {
                 "action",
                 "editBusinessProfile",
-                (__spread__: profile, v: 2)
+                (new Dictionary<string, int>()
+                {
+                    {
+                        "v",
+                        2
+                    }
+                }
+
+                ).Spread(profile)
             };
             dynamic response;
             try
@@ -331,10 +339,12 @@ namespace Bailey
                 wid 
             }]
         } = await this.query(new WAQuery() { { "json", new List<string> { "query", "businessProfile", new List<dynamic> { new Dictionary<string, dynamic>() { { "wid", jid.replace("@s.whatsapp.net", "@c.us") } } }, 84 } }, { "expect200", true }, { "requiresPhoneConnection", false } });
-            return new
+            return (new
             {
                 wid = whatsappID(wid)
-            };
+            }
+
+            ).Spread(profile);
         }
     }
 }

@@ -627,7 +627,7 @@ namespace Bailey
         /// <summary>
         /// Does a fetch request with the configuration of the connection
         /// </summary>
-        protected dynamic fetchRequest = (endpoint, method = "GET", body = null, agent = null, headers = null, followRedirect = true) => (got(endpoint, (method: method, body: body, followRedirect: followRedirect, headers: (Origin: DEFAULT_ORIGIN, __spread__: (headers || new Dictionary<string, dynamic>())), agent: new Dictionary<string, dynamic>() { { "https", agent || this.connectOptions.fetchAgent } })));
+        protected dynamic fetchRequest = (endpoint, method = "GET", body = null, agent = null, headers = null, followRedirect = true) => (got(endpoint, (method: method, body: body, followRedirect: followRedirect, headers: (new Dictionary<string, dynamic>() { { "Origin", DEFAULT_ORIGIN } }).Spread((headers || new Dictionary<string, dynamic>())), agent: new Dictionary<string, dynamic>() { { "https", agent || this.connectOptions.fetchAgent } })));
 
         public void generateMessageTag(bool longTag = false)
         {
