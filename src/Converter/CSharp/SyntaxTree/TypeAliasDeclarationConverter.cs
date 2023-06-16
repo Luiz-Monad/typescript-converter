@@ -18,15 +18,12 @@ namespace TypeScript.Converter.CSharp
             {
                 return CreateDelegateDeclaration(node);
             }
+            var name = SyntaxFactory.NameEquals(NormalizeTypeName(node.Name));
             if (node.TypeParameters.Count > 0)
             {
-                return SyntaxFactory.UsingDirective(SyntaxFactory.NameEquals(node.Name.Text), SyntaxFactory.IdentifierName("dynamic"));
+                return SyntaxFactory.UsingDirective(name, SyntaxFactory.IdentifierName("dynamic"));
             }
-            if (node.Type.Kind == NodeKind.TypeLiteral)
-            {
-                return SyntaxFactory.PropertyDeclaration(node.Type.ToCsSyntaxTree<TypeSyntax>(), node.Name.Text);
-            }
-            return SyntaxFactory.UsingDirective(SyntaxFactory.NameEquals(node.Name.Text), node.Type.ToCsSyntaxTree<NameSyntax>());
+            return SyntaxFactory.UsingDirective(name, node.Type.ToCsSyntaxTree<TypeSyntax>());
         }
 
         private DelegateDeclarationSyntax CreateDelegateDeclaration(TypeAliasDeclaration node)
@@ -34,7 +31,7 @@ namespace TypeScript.Converter.CSharp
             FunctionType fn = node.Type as FunctionType;
 
             DelegateDeclarationSyntax csDelegateDeclaration = SyntaxFactory
-                .DelegateDeclaration(fn.Type.ToCsSyntaxTree<TypeSyntax>(), node.Name.Text)
+                .DelegateDeclaration(fn.Type.ToCsSyntaxTree<TypeSyntax>(), NormalizeTypeName(node.Name))
                 .AddParameterListParameters(fn.Parameters.ToCsSyntaxTrees<ParameterSyntax>())
                 .AddModifiers(node.Modifiers.ToCsSyntaxTrees<SyntaxToken>()); ;
 

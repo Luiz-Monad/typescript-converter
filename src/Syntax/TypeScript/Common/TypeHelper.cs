@@ -388,7 +388,8 @@ namespace TypeScript.Syntax
                 {
                     type = NodeHelper.CreateNode(NodeKind.StringKeyword);
                 }
-                else if (typeRef.TypeArguments.Count == 0) {
+                else if (typeRef.TypeArguments.Count == 0)
+                {
                     type = GetPropertyAccessMemberFromParts(typeRef, typeText.Split('.').ToList());
                 }
                 else
@@ -444,11 +445,14 @@ namespace TypeScript.Syntax
 
         public static Node GetNodeType(Node node, HashSet<Node> visited = null)
         {
-            try {
-                if (visited == null) {
+            try
+            {
+                if (visited == null)
+                {
                     visited = new HashSet<Node>();
                 }
-                if (visited.Contains(node)) {
+                if (visited.Contains(node))
+                {
                     return NodeHelper.CreateNode(NodeKind.AnyKeyword);
                 }
                 visited.Add(node);
@@ -516,7 +520,9 @@ namespace TypeScript.Syntax
                     default:
                         return node.GetValue("Type") as Node;
                 }
-            } finally {
+            }
+            finally
+            {
                 visited.Remove(node);
             }
         }
@@ -820,6 +826,15 @@ namespace TypeScript.Syntax
                 {
                     parameters = ((FunctionDeclaration)member).Parameters;
                 }
+                else if (member.Kind == NodeKind.AnyKeyword)
+                {
+                    foreach (var argument in callExpr.Arguments)
+                    {
+                        var param = (Parameter)NodeHelper.CreateNode(NodeKind.Parameter);
+                        param.SetType(GetNodeType(argument, visited));
+                        parameters.Add(param);
+                    }
+                }
             }
             return parameters;
         }
@@ -969,7 +984,8 @@ namespace TypeScript.Syntax
             Project project = accessNode.Document?.Project;
             var parts = accessNode.Parts;
 
-            if (accessNode.Expression.Kind == NodeKind.ArrayLiteralExpression) {
+            if (accessNode.Expression.Kind == NodeKind.ArrayLiteralExpression)
+            {
                 parts = parts.Select(p => string.Join(',', p.Split(',').Select(t => t.Trim()))).ToList();
             }
             else if (project.Converter != null)
@@ -985,7 +1001,7 @@ namespace TypeScript.Syntax
         public static Node GetPropertyAccessMemberFromParts(Node accessNode, List<string> accessNames, HashSet<Node> visited = null)
         {
             Project project = accessNode.Document?.Project;
-            
+
             Node classNode = null;
             for (int i = 0; i < accessNames.Count; i++)
             {
@@ -1128,7 +1144,7 @@ namespace TypeScript.Syntax
         private static Node GetObjectLiteralType(ObjectLiteralExpression objectLiteral, HashSet<Node> visited = null)
         {
             Node type = GetDeclarationType(objectLiteral, visited);
-            if (type != null)
+            if (type != null && type.Kind != NodeKind.AnyKeyword)
             {
                 return type;
             }
@@ -1137,8 +1153,14 @@ namespace TypeScript.Syntax
             if (properties.Count == 0)
             {
                 TypeLiteral typeLiteral = NodeHelper.CreateNode(NodeKind.TypeLiteral) as TypeLiteral;
-                typeLiteral.Members.Add(NodeHelper.CreateNode(NodeKind.IndexSignature));
-                ((IndexSignature)typeLiteral.Members[0]).SetType(NodeHelper.CreateNode(NodeKind.AnyKeyword));
+
+                Node elementType = NodeHelper.CreateNode(NodeKind.AnyKeyword);
+                elementType.NodeName = "type";
+                
+                Node propSignature = NodeHelper.CreateNode(NodeKind.IndexSignature);
+                propSignature.AddChild(elementType);
+
+                typeLiteral.Members.Add(propSignature);
                 return typeLiteral;
             }
             else
@@ -1186,9 +1208,10 @@ namespace TypeScript.Syntax
                     {
                         elementType = GetNodeType(elementType, visited);
                     }
-                    
+
                     elementType = elementType ?? NodeHelper.CreateNode(NodeKind.AnyKeyword);
-                    if (elementType.Parent != null) {
+                    if (elementType.Parent != null)
+                    {
                         elementType = NodeHelper.CreateNode(elementType.TsNode);
                     }
                     elementType.NodeName = "type";
@@ -1235,7 +1258,7 @@ namespace TypeScript.Syntax
                     return null;
             }
         }
-    
+
         private static Node GetTypeOfBinaryType(Node leftType, Node rightType)
         {
             // string
@@ -1283,10 +1306,12 @@ namespace TypeScript.Syntax
                 if (arrarrType != null)
                 {
                     elementType = arrarrType;
-                    if (elementType is ArrayType arrType) {
+                    if (elementType is ArrayType arrType)
+                    {
                         elementType = arrType.ElementType;
                     }
-                    if (elementType is ArrayType arrType2) {
+                    if (elementType is ArrayType arrType2)
+                    {
                         elementType = arrType2.ElementType;
                     }
                 }

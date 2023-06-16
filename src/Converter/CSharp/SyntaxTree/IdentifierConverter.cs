@@ -18,7 +18,16 @@ namespace TypeScript.Converter.CSharp
             { "ref", "@ref" },
             { "private", "@private"},
             { "public", "@public" },
-            { "string", "@string" }
+            { "static", "@static" },
+            { "string", "@string" },
+            { "short", "@short" },
+            { "catch", "@catch" },
+            { "finally", "@finally" },
+            { "event", "@event" },
+            { "object", "@object" },
+            { "default", "@default" },
+            { "namespace", "@namespace" },
+            { "params", "@params" },
         };
 
         public static string Map(string id) {
@@ -26,7 +35,10 @@ namespace TypeScript.Converter.CSharp
             {
                 return IdentifierMappings[id];
             }
-            return id;
+            if (id.StartsWith("$")) {
+                return "@" + id.Substring(1);
+            }
+            return id.Replace("-", "_");
         }
 
         public CSharpSyntaxNode Convert(Identifier node)
@@ -78,4 +90,3 @@ namespace TypeScript.Converter.CSharp
         }
     }
 }
-

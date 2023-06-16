@@ -56,12 +56,10 @@ namespace TypeScript.Converter.CSharp
                 {
                     csTupleElements.Add(SyntaxFactory.TupleElement(
                         member.Type.ToCsSyntaxTree<TypeSyntax>(),
-                        SyntaxFactory.Identifier(IdentifierConverter.Map(member.Name.Text))));
+                        SyntaxFactory.Identifier(NormalizeTypeName(member.Name))));
                 }
 
                 return SyntaxFactory.TupleType().WithElements(SyntaxFactory.SeparatedList(csTupleElements));
-
-                //return SyntaxFactory.IdentifierName("dynamic");
             }
         }
     }
