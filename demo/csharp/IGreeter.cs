@@ -8,11 +8,7 @@ namespace Demo
 {
     public interface IGreeter
     {
-        String greeting
-        {
-            get;
-            set;
-        }
+        String greeting { get; set; }
 
         String greet();
     }

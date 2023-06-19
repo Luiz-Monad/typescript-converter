@@ -1,0 +1,39 @@
+{
+  "source": [
+    "ast"
+  ],
+  "exclude": [],
+  "samples": [],
+  "target": {
+    "lang": "csharp",
+    "outputs": [
+      {
+        "path": "csharp",
+        "flatOutput": false,
+        "typeScriptType": false,
+        "typeScriptAdvancedType": true,
+        "namespace": "Bailey",
+        "usings": [
+          "System.Linq",
+          "TypeScript.CSharp"
+        ]
+      }
+    ]
+  },
+  "_target": {
+    "lang": "java",
+    "outputs": [
+      {
+        "path": "java",
+        "flatOutput": false,
+        "typeScriptType": false,
+        "typeScriptAdvancedType": true,
+        "namespace": "demo",
+        "usings": [
+        ]
+      }
+    ]
+  },  
+  "namespaceMappings": [],
+  "omittedQualifiedNames": []
+}
