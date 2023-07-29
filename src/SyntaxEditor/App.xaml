@@ -3,5 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:SyntaxEditor"
              StartupUri="MainWindow.xaml">
-
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Controls\ComboPanel.Resources.xaml" />
+                <ResourceDictionary Source="Controls\ZoomControl.Resources.xaml" />
+                <ResourceDictionary Source="Controls\TreeViewFlat.Resources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
 </Application>

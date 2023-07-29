@@ -1,47 +1,32 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>net5.0-windows</TargetFramework>
-        <!--<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>-->
-
-        <OutputType>WinExe</OutputType>
-        <UseWpf>true</UseWpf>
-
-        <RootNamespace>SyntaxEditor</RootNamespace>
-        <AssemblyName>SyntaxEditor</AssemblyName>
-        <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-        <ProjectGuid>{63FF88E0-DC20-4EA1-A73A-5EA0B9EDDB29}</ProjectGuid>
-
-        <WarningLevel>4</WarningLevel>
-        <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-    </PropertyGroup>
-    <ItemGroup>
-        <None Remove="Resources\Greeter.ts.json" />
-        <None Remove="Resources\IGreeter.ts.json" />
-    </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="GraphShape.Controls" Version="1.2.1" />
-        <PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\Converter\CSharp\TypeScript.Converter.CSharp.csproj" />
-        <ProjectReference Include="..\Syntax\TypeScript.Syntax.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Include="Resources\Greeter.ts.json" />
-        <EmbeddedResource Include="Resources\IGreeter.ts.json" />
-    </ItemGroup>
-    <ItemGroup>
-      <Compile Update="Resources\Resources.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>Resources.resx</DependentUpon>
-      </Compile>
-    </ItemGroup>
-    <ItemGroup>
-      <EmbeddedResource Update="Resources\Resources.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
-    </ItemGroup>
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp7-windows</TargetFramework>
+    <UseWpf>true</UseWpf>
+    <RootNamespace>SyntaxEditor</RootNamespace>
+    <AssemblyName>SyntaxEditor</AssemblyName>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="GraphShape.Controls" Version="1.2.1" />
+    <PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Converter\CSharp\TypeScript.Converter.CSharp.csproj" />
+    <ProjectReference Include="..\Converter\Java\TypeScript.Converter.Java.csproj" />
+    <ProjectReference Include="..\Syntax\TypeScript\TypeScript.Syntax.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

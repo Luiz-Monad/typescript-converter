@@ -2,8 +2,22 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <ItemGroup>
-    <EmbeddedResource Update="Resources\Resources.resx">
+    <Compile Update="DocumentBrowser.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\ComboPanel.Resources.xaml">
       <SubType>Designer</SubType>
-    </EmbeddedResource>
+    </Page>
+    <Page Update="Controls\TreeViewFlat.Resources.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\ZoomControl.Resources.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="DocumentBrowser.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>

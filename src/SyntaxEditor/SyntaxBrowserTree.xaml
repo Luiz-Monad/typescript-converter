@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:s="clr-namespace:SyntaxEditor"
+             xmlns:c="clr-namespace:SyntaxEditor.Controls"
              xmlns:m="clr-namespace:SyntaxEditor.Model"
              xmlns:vm="clr-namespace:SyntaxEditor.ViewModel"
              xmlns:sample="clr-namespace:SyntaxEditor.ViewModel.Sample"
@@ -28,8 +30,9 @@
         </Style>
     </UserControl.Resources>
     <TreeView ItemsSource="{Binding Root}"
+              BorderThickness="0"
               d:VirtualizingStackPanel.IsVirtualizing="False"
+              d:VirtualizingStackPanel.VirtualizationMode="Standard"
               VirtualizingStackPanel.IsVirtualizing="True"
-              VirtualizingStackPanel.VirtualizationMode="Recycling">
-    </TreeView>
+              VirtualizingStackPanel.VirtualizationMode="Recycling" />
 </UserControl>

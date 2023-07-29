@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
+using System.Drawing;
 using GraphShape.Utils;
 using SyntaxEditor.Model;
-using P = System.Reflection.BindingFlags;
-using AST = TypeScript.Syntax.Node;
-using System.Drawing;
+using System.Collections.Generic;
 
 namespace SyntaxEditor.ViewModel
 {
@@ -12,10 +10,11 @@ namespace SyntaxEditor.ViewModel
     public class CodeBrowser : NotifierObject
     {
         public IReadOnlyList<TextBlock> Source { get; set; }
+
         public Point Cursor { get; set; }
 
-        private AST _AST;
-        public AST AST
+        private Node _AST;
+        public Node AST
         {
             get => _AST;
             set
@@ -29,7 +28,7 @@ namespace SyntaxEditor.ViewModel
             }
         }
 
-        private IEnumerable<TextBlock> ConvertToTextBlock(State st, AST AST)
+        private IEnumerable<TextBlock> ConvertToTextBlock(State st, Node AST)
         {
             var kind = AST.Kind.ToString();
             st.Position.Offset(1, 0);
@@ -43,7 +42,7 @@ namespace SyntaxEditor.ViewModel
                 position: st.Position,
                 ast: AST
             );
-            foreach (var i in AST.Children
+            foreach (var i in AST.Nodes
                     .SelectMany(c => ConvertToTextBlock(st, c)))
                 yield return i;
         }

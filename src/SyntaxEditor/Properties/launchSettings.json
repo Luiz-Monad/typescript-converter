@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SyntaxEditor": {
+      "commandName": "Project",
+      "workingDirectory": "$(ProjectDir)/../.."
+    }
+  }
+}

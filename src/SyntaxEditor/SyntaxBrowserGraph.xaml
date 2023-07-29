@@ -3,15 +3,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:s="clr-namespace:SyntaxEditor"
+             xmlns:c="clr-namespace:SyntaxEditor.Controls"
              xmlns:m="clr-namespace:SyntaxEditor.Model"
              xmlns:vm="clr-namespace:SyntaxEditor.ViewModel"
              xmlns:sample="clr-namespace:SyntaxEditor.ViewModel.Sample"
-             xmlns:c="clr-namespace:SyntaxEditor.Controls"
              mc:Ignorable="d"
              d:DesignHeight="450"
-             d:DesignWidth="340">
+             d:DesignWidth="340"
+             d:Background="White">
     <d:UserControl.DataContext>
         <sample:SyntaxBrowser />
     </d:UserControl.DataContext>
-    <c:GraphLayout DataContext="{Binding Graph, Mode=OneWay}" />
+    <c:ZoomControl>
+        <c:GraphLayout x:Name="graphLayoutControl"
+                       LayoutAlgorithmType="Sugiyama"
+                       OverlapRemovalAlgorithmType="FSA"
+                       HighlightAlgorithmType="Simple"
+                       Graph="{Binding Graph, Mode=OneWay}" />
+    </c:ZoomControl>
 </UserControl>

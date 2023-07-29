@@ -1,9 +1,10 @@
-using GraphShape.Controls;
 using QuikGraph;
+using SyntaxEditor.Model;
+using GraphShape.Controls;
 
 namespace SyntaxEditor.Controls
 {
-    internal class GraphLayout : GraphLayout<string, IEdge<string>, IBidirectionalGraph<string, IEdge<string>>>
+    class GraphLayout : GraphLayout<Node, SEdge<Node>, IBidirectionalGraph<Node, SEdge<Node>>>
     {
     }
 }

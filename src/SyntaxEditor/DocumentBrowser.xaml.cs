@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,19 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using QuikGraph;
 
 namespace SyntaxEditor
 {
     /// <summary>
-    /// Interaction logic for SyntaxBrowserGraph.xaml
+    /// Interaction logic for DocumentBrowser.xaml
     /// </summary>
-    public partial class SyntaxBrowserGraph : UserControl
+    public partial class DocumentBrowser : UserControl
     {
-        public SyntaxBrowserGraph()
+        public DocumentBrowser()
         {
             InitializeComponent();
         }
-
     }
 }
