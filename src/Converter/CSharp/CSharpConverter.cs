@@ -29,7 +29,7 @@ namespace TypeScript.Converter.CSharp
         }
         #endregion
 
-        #region IConverter Interface
+        #region IConvertContext Interface
         /// <summary>
         /// Gets the converter context.
         /// </summary>
@@ -47,6 +47,17 @@ namespace TypeScript.Converter.CSharp
         public string Convert(Node node)
         {
             return CodeHeaderText + node.ToCSharp();
+        }
+        #endregion
+
+        #region IConverterHook Interface
+        /// <summary>
+        /// Gets the converter hook.
+        /// </summary>
+        public IConverterHook Hook
+        {
+            get;
+            set;
         }
         #endregion
 

@@ -171,7 +171,11 @@ namespace TypeScript.Converter.Java
                 }
 
                 MethodInfo convertMethod = converter.GetType().GetMethod("Convert", new System.Type[] { node.GetType() });
-                return convertMethod.Invoke(converter, new object[] { node });
+                object result = convertMethod.Invoke(converter, new object[] { node });
+                
+                JavaConverter.Current.Hook?.Convert(node, result);
+
+                return result;
             }
             catch (TargetInvocationException ex)
             {

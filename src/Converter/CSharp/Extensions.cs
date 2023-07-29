@@ -109,6 +109,8 @@ namespace TypeScript.Converter.CSharp
                 MethodInfo convertMethod = converter.GetType().GetMethod("Convert", new Type[] { node.GetType() });
                 object result = convertMethod.Invoke(converter, new object[] { node });
 
+                CSharpConverter.Current.Hook?.Convert(node, result);
+
                 if (!CanConvert(node))
                 {
                     LogWarning($"Cannot convert {node.Kind}: {node.Text}");

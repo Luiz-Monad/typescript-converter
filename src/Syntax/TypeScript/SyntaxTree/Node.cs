@@ -74,6 +74,10 @@ namespace TypeScript.Syntax
                 {
                     return this._nodeName;
                 }
+                if (this.Path == null)
+                {
+                    return this.Kind.ToString();
+                }
 
                 string name = this.Path.Split(".").Last();
                 Match match = Regex.Match(name, @"(.*)\[\d+\]"); ;
