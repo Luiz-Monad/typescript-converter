@@ -50,6 +50,17 @@ namespace TypeScript.Converter.Java
         }
         #endregion
 
+        #region IConverterHook Interface
+        /// <summary>
+        /// Gets the converter hook.
+        /// </summary>
+        public IConverterHook Hook
+        {
+            get;
+            set;
+        }
+        #endregion
+
         #region Fields
         internal static JavaConverter Current { get; private set; }
         #endregion

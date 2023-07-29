@@ -10,6 +10,11 @@ namespace TypeScript.Syntax.Converter
     public interface IConverter
     {
         /// <summary>
+        /// Gets the convert hook
+        /// </summary>
+        IConverterHook Hook { get; set; }
+
+        /// <summary>
         /// Gets the convert context
         /// </summary>
         IConvertContext Context { get; }
