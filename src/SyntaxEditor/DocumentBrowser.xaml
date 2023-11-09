@@ -10,35 +10,26 @@
              xmlns:sample="clr-namespace:SyntaxEditor.ViewModel.Sample"
              mc:Ignorable="d"
              d:DesignHeight="450"
-             d:DesignWidth="800">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="5" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="5" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <s:CodeBrowser Grid.Column="0">
+             d:DesignWidth="600">
+    <UserControl.DataContext>
+        <vm:DocumentBrowser />
+    </UserControl.DataContext>
+    <d:UserControl.DataContext>
+        <sample:DocumentBrowser />
+    </d:UserControl.DataContext>
+    <c:SplitPanel Orientation="Horizontal">
+
+        <s:CodeBrowser>
             <s:CodeBrowser.DataContext>
                 <sample:CodeBrowser />
             </s:CodeBrowser.DataContext>
         </s:CodeBrowser>
-        <GridSplitter Grid.Column="1"
-                      Width="5"
-                      HorizontalAlignment="Stretch" />
-        <s:SyntaxBrowser Grid.Column="2" >
+
+        <s:SyntaxBrowser>
             <s:SyntaxBrowser.DataContext>
                 <sample:SyntaxBrowser />
             </s:SyntaxBrowser.DataContext>
         </s:SyntaxBrowser>
-        <GridSplitter Grid.Column="3"
-                      Width="5"
-                      HorizontalAlignment="Stretch" />
-        <s:PropertyBrowser Grid.Column="4">
-            <s:PropertyBrowser.DataContext>
-                <sample:PropertyBrowser />
-            </s:PropertyBrowser.DataContext>
-        </s:PropertyBrowser>
-    </Grid>
+
+    </c:SplitPanel>
 </UserControl>

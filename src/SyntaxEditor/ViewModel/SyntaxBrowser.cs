@@ -67,7 +67,8 @@ namespace SyntaxEditor.ViewModel
 
     namespace Sample
     {
-        using static SyntaxEditor.Model.Converter;
+        using SyntaxEditor.Utils;
+        using static SyntaxEditor.Utils.Converter;
 
         public class SyntaxBrowser : ViewModel.SyntaxBrowser
         {
@@ -83,7 +84,7 @@ namespace SyntaxEditor.ViewModel
 
             public SyntaxBrowser() : base()
             {
-                AST = converter.Convert();
+                AST = converter.ConvertToNode();
             }
         }
     }

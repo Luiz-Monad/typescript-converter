@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using TypeScript.Syntax;
-using SyntaxEditor.Utils;
+using SyntaxEditor.Model;
 using TypeScript.Converter.Java;
 using System.Collections.Generic;
 using TypeScript.Syntax.Converter;
@@ -10,13 +10,17 @@ using TypeScript.Converter.CSharp;
 using Microsoft.CodeAnalysis.CSharp;
 using GrapeCity.Syntax.Converter.Source.TypeScript.Builders;
 
+using Document = SyntaxEditor.Model.Document;
+using Node = SyntaxEditor.Model.Node;
 using CsharpAST = Microsoft.CodeAnalysis.SyntaxNode;
 using CsharpToken = Microsoft.CodeAnalysis.SyntaxToken;
 using CsharpList = Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode>;
 using AST = TypeScript.Syntax.Node;
+using TSFile = TypeScript.Syntax.Document;
 using P = System.Reflection.BindingFlags;
+using System.Windows.Controls;
 
-namespace SyntaxEditor.Model
+namespace SyntaxEditor.Utils
 {
     public class Converter
     {
@@ -36,18 +40,23 @@ namespace SyntaxEditor.Model
             this.docNamespace = docNamespace;
             this.outputLang = outputLang;
             this.usings = usings;
-            var documents = this.BuildAst(GetDirectoryFiles(basePath));
+            var documents = BuildAst(GetDirectoryFiles(basePath));
             var project = new Project(basePath, documents);
-            project.Converter = this.CreateConverter(project); ;
+            project.Converter = CreateConverter(project); ;
             this.project = project;
         }
 
-        public Node Convert()
+        public Node ConvertToNode()
         {
-            return this.Convert(project.Converter);
+            return ConvertToNode(Convert(project.Converter));
         }
 
-        private Node Convert(IConverter converter)
+        public List<Document> Convert()
+        {
+            return Convert(project.Converter);
+        }
+
+        private List<Document> Convert(IConverter converter)
         {
             var context = converter.Context;
             var project = context.Project;
@@ -56,36 +65,44 @@ namespace SyntaxEditor.Model
             project.Normalize(project.Documents);
 
             // convert
-            var result = new Dictionary<Document, List<ConvertedNode>>();
+            var result = new List<Document>();
             foreach (var doc in project.Documents)
             {
                 var hook = new Hook();
                 project.Converter.Hook = hook;
                 converter.Convert(doc.Source);
-                result.Add(doc, hook.nodes);
+                result.Add(ConvertToDocument(doc, ProcessTree(hook.nodes)));
             }
 
-            // create the tree structure
-            foreach (var doc in result.Keys)
-            {
-                var sourceNodes = result[doc].Select(n => (AST)n.Source.AST).ToList();
-                foreach (var node in result[doc])
-                {
-                    if (node.Source.Name == null)
-                    {
-                        node.Source = ConvertToNode(node.Source.AST);
-                    }
-                    if (node.Target.Name == null)
-                    {
-                        node.Target = ConvertToNode(node.Target.AST);
-                    }
-                }
-            }
-
-            return ConvertToNode(result);
+            return result;
         }
 
-        private Node ConvertToNode(Dictionary<Document, List<ConvertedNode>> docs) => new Node()
+        private List<ConvertedNode> ProcessTree(List<ConvertedNode> nodes)
+        {
+            // create the tree structure
+            foreach (var node in nodes)
+            {
+                if (node.Source.Name == null)
+                {
+                    node.Source = ConvertToNode(node.Source.AST);
+                }
+                if (node.Target.Name == null)
+                {
+                    node.Target = ConvertToNode(node.Target.AST);
+                }
+            }
+            return nodes;
+        }
+
+        private Document ConvertToDocument(TSFile file, List<ConvertedNode> nodes) => new Document() {
+            Name = Path.GetFileNameWithoutExtension(file.Path),
+            Path = file.Path,
+            Nodes = nodes,
+            Source = nodes.LastOrDefault().Source,
+            Target = nodes.LastOrDefault().Target
+        };
+
+        private Node ConvertToNode(List<Document> docs) => new Node()
         {
             Name = docs.GetType().Name,
             Kind = docs.GetType().Name,
@@ -95,14 +112,14 @@ namespace SyntaxEditor.Model
             AST = docs
         };
 
-        private Node ConvertToNode(KeyValuePair<Document, List<ConvertedNode>> doc) => new Node()
+        private Node ConvertToNode(Document doc) => new Node()
         {
-            Name = doc.Key.GetType().Name,
-            Kind = doc.Key.GetType().Name,
-            Text = Path.GetFileName(doc.Key.Path),
-            Properties = ConvertProperties(doc.Key),
-            Nodes = doc.Value.TakeLast(1).SelectMany(ConvertToNode).ToList(),
-            AST = doc.Key
+            Name = doc.GetType().Name,
+            Kind = doc.GetType().Name,
+            Text = Path.GetFileName(doc.Path),
+            Properties = ConvertProperties(doc),
+            Nodes = doc.Nodes.TakeLast(1).SelectMany(ConvertToNode).ToList(),
+            AST = doc
         };
 
         private IEnumerable<Node> ConvertToNode(ConvertedNode node) => new[] { new Node()
@@ -110,16 +127,16 @@ namespace SyntaxEditor.Model
             Name = node.GetType().Name,
             Kind = node.GetType().Name,
             Text = "Source",
-            Properties = ConvertProperties(node),
+            Properties = ConvertProperties(node.Source),
             Nodes = Enumerable.Repeat(node.Source.AST, 1).Select(ConvertToNode).ToList(),
-            AST = node
+            AST = node.Source
         }, new Node() {
             Name = node.GetType().Name,
             Kind = node.GetType().Name,
             Text = "Target",
-            Properties = ConvertProperties(node),
+            Properties = ConvertProperties(node.Target),
             Nodes = Enumerable.Repeat(node.Target.AST, 1).Select(ConvertToNode).ToList(),
-            AST = node
+            AST = node.Target
         } };
 
         private Node ConvertToNode(object AST)
@@ -132,7 +149,7 @@ namespace SyntaxEditor.Model
                 return ConvertToNode(token);
             else if (AST.IsInstanceOfGenericType(typeof(CsharpList)))
             {
-                var exp = ToExpression((CsharpList arg) => this.ConvertToNode(arg));
+                var exp = ToExpression((CsharpList arg) => ConvertToNode(arg));
                 return exp.InvokeGeneric(AST);
             }
             else
@@ -208,10 +225,10 @@ namespace SyntaxEditor.Model
             }
         }
 
-        private List<Document> BuildAst(List<string> files)
+        private List<TSFile> BuildAst(List<string> files)
         {
             var visitor = new AnalysisVisitor();
-            var documents = new List<Document>();
+            var documents = new List<TSFile>();
             var builder = new AbstractSyntaxTreeBuilder();
             foreach (var file in files)
             {
@@ -256,7 +273,7 @@ namespace SyntaxEditor.Model
 
             public List<string> ExcludeTypes => new List<string>();
 
-            public IOutput GetOutput(Document doc)
+            public IOutput GetOutput(TSFile doc)
             {
                 return null;
             }
@@ -279,11 +296,11 @@ namespace SyntaxEditor.Model
             public Node Target { get; set; }
         }
 
-        class Hook : IConverterHook
+        private class Hook : IConverterHook
         {
             public List<ConvertedNode> nodes { get; private set; } = new List<ConvertedNode>();
 
-            public void Convert(TypeScript.Syntax.Node source, object target)
+            public void Convert(AST source, object target)
             {
                 nodes.Add(new ConvertedNode()
                 {

@@ -20,6 +20,12 @@
                 <MenuItem Header="_Exit" />
             </MenuItem>
         </Menu>
+        <s:PropertyBrowser DockPanel.Dock="Right"
+                           Grid.Column="4">
+            <s:PropertyBrowser.DataContext>
+                <sample:PropertyBrowser />
+            </s:PropertyBrowser.DataContext>
+        </s:PropertyBrowser>
         <TabControl>
             <TabItem>
                 <s:DocumentBrowser />

@@ -55,11 +55,24 @@ namespace SyntaxEditor.ViewModel
 
     namespace Sample
     {
+        using SyntaxEditor.Utils;
+        using static SyntaxEditor.Utils.Converter;
+
         public class CodeBrowser : ViewModel.CodeBrowser
         {
+            private const string basePath = "demo/ast";
+            private const string docNamespace = "Bailey";
+            private const Lang outputLang = Lang.CSharp;
+            private static string[] usings = new[] { "System.Linq", "TypeScript.CSharp" };
+            private Converter converter = new Converter(
+                basePath: basePath,
+                docNamespace: docNamespace,
+                outputLang: outputLang,
+                usings: usings);
+
             public CodeBrowser() : base()
             {
-                AST = new SyntaxBrowser().AST;
+                AST = converter.ConvertToNode();
             }
         }
     }
